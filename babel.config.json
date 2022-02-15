@@ -1,0 +1,15 @@
+{
+    "comments": false,
+    "presets": [
+        [
+            "@babel/env", {
+                "modules": false,
+
+                "targets": {
+                    "esmodules": true
+                }
+            }
+        ],
+        "minify"
+    ]
+}

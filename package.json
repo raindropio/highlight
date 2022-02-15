@@ -1,0 +1,15 @@
+{
+  "name": "highlight",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "babel src.js --out-file dist/highlight.js"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.0",
+    "@babel/core": "^7.17.2",
+    "@babel/preset-env": "^7.16.11",
+    "babel-preset-minify": "^0.5.1"
+  }
+}
