@@ -332,7 +332,7 @@ class RdHighlight {
             //note icon for last
             if (i == candidates.size-1 && note)
                 mark.insertAdjacentHTML('beforeend', `<svg class="${this._classNoteIcon}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
-                    <path d="M8 0a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2v1a1 1 0 0 1-1.6.8L4 8H2a2 2 0 0 1-2-2V2C0 .9.9 0 2 0h6Zm0 1H2a1 1 0 0 0-1 .9V6c0 .5.4 1 .9 1h2.4L7 9V7h1c.5 0 1-.4 1-.9V2c0-.5-.4-1-.9-1H8Z"/>
+                    <path d="M8 0a2 2 0 0 1 2 2v8L6 8H2a2 2 0 0 1-2-2V2C0 .9.9 0 2 0h6Zm0 1H2a1 1 0 0 0-1 .9V6c0 .5.4 1 .9 1h4.3L9 8.4V2c0-.5-.4-1-.9-1H8Z"/>
                 </svg>`)
 
             //nav
@@ -408,7 +408,8 @@ class RdHighlight {
                 fill: currentColor !important;
                 background: transparent !important;
                 border-radius: 0 !important;
-                margin-left: 0.2em !important;
+                margin-left: 0.3em !important;
+                margin-right: 0.3em !important;
                 width: 0.85em;
                 height: 0.85em;
             }
