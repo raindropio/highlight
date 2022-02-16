@@ -1,3 +1,26 @@
+class RdHotkey {
+    _parent = null //RdHighlight
+
+    constructor(parent) {
+        this._parent = parent
+
+        //bind
+        this._onKeyDown = this._onKeyDown.bind(this)
+
+        //add event listeners
+        this._parent._window.removeEventListener('keydown', this._onKeyDown)
+        this._parent._window.addEventListener('keydown', this._onKeyDown)
+    }
+
+    _onKeyDown(e) {
+        if (e.code == 'KeyS' && e.altKey && e.shiftKey){
+            e.preventDefault()
+            e.stopPropagation()
+            this._parent.addSelection()
+        }
+    }
+}
+
 class RdSelect {
     _parent = null //RdHighlight
     _menu = null
@@ -13,7 +36,7 @@ class RdSelect {
     constructor(parent) {
         this._parent = parent
 
-        //add styles
+        //init
         this._initStyles()
         this._initMenu()
 
@@ -50,44 +73,21 @@ class RdSelect {
         clearTimeout(this._selectTimeout)
         this._selectTimeout = setTimeout(
             this.render,
-            this._parent._window.getSelection().isCollapsed ? 0 : 150
+            this._parent._window.getSelection().isCollapsed ? 0 : 250
         )
     }
 
     /* Buttons */
-    _addSelection(details={}) {
-        if (typeof this._parent.onAdd != 'function') return
-
-        const selection = this._parent._window.getSelection()
-        const text = selection.toString().trim()
-
-        if (!this._parent.test(text)) {
-            alert('⚠️ Unfortunately we can\'t add this text')
-            return
-        }
-        
-        this._parent.onAdd({ ...details, text })
-        selection.removeAllRanges()
-    }
-
     _addClick(e) {
         e.preventDefault()
-        this._addSelection({
+        this._parent.addSelection({
             color: e.currentTarget.getAttribute(this._attrColor) || ''
         })
     }
 
     _addNoteClick(e) {
         e.preventDefault()
-        
-        if (!this._parent.pro)
-            return alert(`Notes/annotations only available in Pro plan`)
-
-        const note = prompt('Add note', '')||''
-        if (note.trim())
-            this._addSelection({
-                note
-            })
+        this._parent.noteSelection()
     }
 
     /* Menu */
@@ -96,15 +96,15 @@ class RdSelect {
             return
 
         //create menu
-        this._menu = this._parent._document.createElement('div')
+        this._menu = this._parent._document.createElement('menu')
         this._menu.id = this._idMenu
         this._menu.setAttribute('hidden', 'true')
         this._menu.innerHTML = `
-            <div title="Add highlight...">
+            <li title="Add highlight...">
                 ${this._colors.map(color=>`
                     <button class="${this._classButtonHighligh}" ${this._attrColor}="${color}"></button>
                 `).join('')}
-            </div>
+            </li>
             
             <button id="${this._idButtonNote}" title="Add note...">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
@@ -141,7 +141,7 @@ class RdSelect {
         const style = this._parent._document.createElement('style')
         style.id = this._idCss
         style.innerHTML = `
-            div#${this._idMenu} {
+            #${this._idMenu} {
                 position: absolute !important;
                 display: flex !important;
                 
@@ -157,29 +157,32 @@ class RdSelect {
                 transition: opacity .15s ease-in-out !important;
                 overflow: hidden !important;
                 border: 0 !important;
+                padding: 0 !important;
             }
-            div#${this._idMenu}, div#${this._idMenu} * {
+            #${this._idMenu}, #${this._idMenu} * {
+                box-sizing: border-box !important;
                 user-select: none !important;
                 -webkit-user-select: none !important;
             }
-            div#${this._idMenu}[hidden] {
+            #${this._idMenu}[hidden] {
                 pointer-events: none !important;
                 opacity: 0 !important;
             }
 
             /* Dropdown */
-            div#${this._idMenu} > div {
+            #${this._idMenu} > li {
+                display: block !important;
                 max-height: 32px !important;
                 transition: max-height .15s ease-in !important;
                 transition-delay: .25s !important;
             }
 
-            div#${this._idMenu} > div:hover:not(:active) {
+            #${this._idMenu} > li:hover:not(:active) {
                 max-height: ${this._colors.length * 32}px !important;
             }
 
             /* Buttons */
-            div#${this._idMenu} button {
+            #${this._idMenu} button {
                 cursor: pointer !important;
                 color: WindowText !important;
                 width: 32px !important;
@@ -196,19 +199,19 @@ class RdSelect {
                 transition: background .1s linear, color .1s linear !important;
                 filter: none !important;
             }
-            div#${this._idMenu} button:hover {
+            #${this._idMenu} button:hover {
                 background: rgba(100,100,100,.3) !important;
             }
-            div#${this._idMenu} button:active {
+            #${this._idMenu} button:active {
                 filter: brightness(50%) !important;
             }
 
-            div#${this._idMenu} * {
+            #${this._idMenu} * {
                 fill: currentColor !important;
             }
 
             /* Color */
-            div#${this._idMenu} button[${this._attrColor}]:before {
+            #${this._idMenu} button[${this._attrColor}]:before {
                 content: '' !important;
                 display: block !important;
                 width: 18px !important;
@@ -218,7 +221,7 @@ class RdSelect {
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.5) 0, rgba(255,255,255,.4) 100%) !important;
             }
             ${this._colors.map(color=>`
-                div#${this._idMenu} button[${this._attrColor}=${color}]:before { background-color: ${color} !important; }
+                #${this._idMenu} button[${this._attrColor}=${color}]:before { background-color: ${color} !important; }
             `).join('')}
         `
         this._parent._container.appendChild(style)
@@ -230,6 +233,7 @@ class RdSelect {
         const rdh = new RdHighlight(document.body)
         rdh.enabled = true
         rdh.pro = true
+        rdh.nav = true
 
         rdh.apply([...{_id, text, color, note}])
         rdh.onEdit = (id) => {}
@@ -249,6 +253,7 @@ class RdHighlight {
     //configuration
     enabled = false
     pro = false
+    nav = false
 
     //events
     onEdit = ()=>{} //(id)=>{}
@@ -259,8 +264,9 @@ class RdHighlight {
         this._document = this._container.ownerDocument
         this._window = this._document.defaultView
 
-        //init select menu
+        //init select menu / hotkeys
         this._select = new RdSelect(this)
+        this._hotkey = new RdHotkey(this)
 
         //bind
         this._markClick = this._markClick.bind(this)
@@ -297,6 +303,46 @@ class RdHighlight {
             .forEach(e=>e.remove())
     }
 
+    /* Scroll to id */
+    scrollToId(id) {
+        const mark = this._container.querySelector(`mark[${this._attrId}="${id}"]`)
+        mark.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        })
+    }
+
+    /* Add selection */
+    addSelection(details={}) {
+        if (typeof this.onAdd != 'function') return
+
+        const selection = this._window.getSelection()
+        const text = selection.toString().trim()
+
+        if (!this.test(text)) {
+            alert('⚠️ Unfortunately we can\'t add this text')
+            return
+        }
+        
+        this.onAdd({ ...details, text })
+        selection.removeAllRanges()
+    }
+
+    noteSelection() {
+        if (!this.pro)
+            return alert(`Notes/annotations only available in Pro plan`)
+
+        const note = prompt('Add note', '')||''
+        if (note.trim())
+            this.addSelection({
+                note
+            })
+    }
+
+    copySelection() {
+        this._document.execCommand('copy')
+    }
+
     /* Wrap all canditates in <mark> tag */
     mark(candidates, { _id, color, note }) {
         let i = 0
@@ -325,6 +371,7 @@ class RdHighlight {
             if (note)
                 mark.setAttribute('title', note)
             mark.addEventListener('click', this._markClick)
+            mark.addEventListener('contextmenu', this._markClick)
 
             //wrap text in mark tag
             range.surroundContents(mark)
@@ -336,7 +383,7 @@ class RdHighlight {
                 </svg>`)
 
             //nav
-            if (i == 0){
+            if (this.nav && i == 0){
                 const nav = this._document.createElement('a')
                 nav.className = this._classNav
                 nav.setAttribute(this._attrId, _id)                    
@@ -360,6 +407,7 @@ class RdHighlight {
     _markClick(e) {
         if (typeof this.onEdit != 'function') return
         e.preventDefault()
+        e.stopPropagation()
         if (e.target.tagName == 'A') return
         const mark = e.currentTarget
         const id = mark.getAttribute(this._attrId)
@@ -368,13 +416,10 @@ class RdHighlight {
 
     _navClick(e) {
         e.preventDefault()
+        e.stopPropagation()
         const nav = e.currentTarget
         const id = nav.getAttribute(this._attrId)
-        const mark = this._container.querySelector(`mark[${this._attrId}="${id}"]`)
-        mark.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        })
+        this.scrollToId(id)
     }
 
     /* Styles */
@@ -410,8 +455,8 @@ class RdHighlight {
                 border-radius: 0 !important;
                 margin-left: 0.3em !important;
                 margin-right: 0.3em !important;
-                width: 0.85em;
-                height: 0.85em;
+                width: 0.85em !important;
+                height: 0.85em !important;
             }
             .${this._classNav} {
                 position: fixed !important;
@@ -557,8 +602,16 @@ window.onload = function() {
             break
 
             case 'rdh-config':
-                rdh.enabled = payload.enabled ? true : false
-                rdh.pro = payload.pro ? true : false
+                if (typeof payload.enabled == 'boolean')
+                    rdh.enabled = payload.enabled
+                if (typeof payload.pro == 'boolean')
+                    rdh.pro = payload.pro
+                if (typeof payload.nav == 'boolean')
+                    rdh.nav = payload.nav
+            break
+
+            case 'rdh-scroll':
+                rdh.scrollToId(payload._id)
             break
         }
     }

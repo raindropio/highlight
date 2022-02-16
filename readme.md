@@ -7,8 +7,9 @@ Should be injected an Iframe or in Electron WebView
 - { action: 'rdh-add', payload: { text, color, note } }     Add new highlight
 
 ## Supported events
-- { action: 'rdh-config', payload: { enabled: true, pro: true } }
+- { action: 'rdh-config', payload: { enabled: true, nav: true, pro: true } }
 - { action: 'rdh-apply', payload: [[...{_id, text, color, note}]] }
+- { action: 'rdh-scroll', payload: { _id } }
 
 ## Use in webpage
 ```js

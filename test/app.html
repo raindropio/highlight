@@ -10,6 +10,7 @@
         }
         body {
             display: flex;
+            flex-direction: column;
             margin: 0;
         }
         iframe {
@@ -46,6 +47,7 @@
                         action: 'rdh-config',
                         payload: {
                             enabled: true,
+                            nav: true,
                             pro: true
                         }
                     }, '*')
@@ -77,9 +79,23 @@
                 break
             }
         })
+
+        function scrollToLast() {
+            iframe.postMessage({
+                action: 'rdh-scroll',
+                payload: {
+                    _id: highlights[highlights.length-1]._id
+                }
+            }, '*')
+        }
     </script>
 </head>
 <body>
+    <div>
+        <button onclick="scrollToLast()">
+            Scroll to last
+        </button>
+    </div>
     <iframe id="iframe" src="embed.html"></iframe>
     <!-- <iframe id="iframe" src="http://127.0.0.1:8787/article/aHR0cHM6Ly90b21jcml0Y2hsb3cuY29tLzIwMjIvMDEvMjYvZWxlY3RyaWMtdGFibGVzLw==#theme=auto&solid-bg=false&font-size=1&font-family="></iframe> -->
 </body>
