@@ -13,6 +13,9 @@ class RdHotkey {
     }
 
     _onKeyDown(e) {
+        if (!this._parent.hotkey) 
+            return
+
         if (e.code == 'KeyS' && e.altKey && e.shiftKey){
             e.preventDefault()
             e.stopPropagation()
@@ -256,6 +259,7 @@ class RdSelect {
         rdh.enabled = true
         rdh.pro = true
         rdh.nav = true
+        rdh.hotkey = true
 
         rdh.apply([...{_id, text, color, note}])
         rdh.onEdit = (id) => {}
@@ -276,6 +280,7 @@ class RdHighlight {
     enabled = false
     pro = false
     nav = false
+    hotkey = false
 
     //events
     onEdit = ()=>{} //(id)=>{}
@@ -300,14 +305,15 @@ class RdHighlight {
         this.reset()
         this._initStyles()
 
-        for(const highlight of highlights)
-            this.mark(
-                this._getCanditates(
-                    this._getTextNodes(this._container),
-                    highlight.text
-                ),
-                highlight
-            )
+        if (Array.isArray(highlights))
+            for(const highlight of highlights)
+                this.mark(
+                    this._getCanditates(
+                        this._getTextNodes(this._container),
+                        highlight.text
+                    ),
+                    highlight
+                )
     }
 
     /* Test */
@@ -327,11 +333,11 @@ class RdHighlight {
 
     /* Scroll to id */
     scrollToId(id) {
-        const mark = this._container.querySelector(`mark[${this._attrId}="${id}"]`)
-        mark.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        })
+        if (!id) return
+
+        const mark = this._container.querySelector(`mark[${this._attrId}="${String(id)}"]`)
+        if (mark)
+            mark.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
 
     /* Add selection */
@@ -492,7 +498,7 @@ class RdHighlight {
                 display: block !important;
                 width: 10px !important;
                 height: 10px !important;
-                border-radius: 10px !important;
+                border-radius: 4px !important;
                 box-shadow: 0 0 0 0.5px ButtonShadow, 0 5px 30px rgb(0 0 0 / 30%) !important;
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.2) 0, rgba(255,255,255,.2) 100%) !important;
             }
@@ -585,59 +591,85 @@ class RdHighlight {
 window.onload = function() {
     //generic event handlers
     let embeded = false
-    let send = ()=>{}       //(action,payload)
-    let receive = ()=>{}    //(action,payload)
+    let send = ()=>{}       //(type,payload)
+    let receive = ()=>{}    //(type,payload)
+
+    //extension inject script
+    if ((typeof chrome == 'object' && chrome.runtime) || (typeof browser == 'object' && browser.runtime)) {
+        const browser = window.browser || window.chrome
+        embeded = true
+
+        send = (type, payload)=>
+            browser.runtime.sendMessage(null, { type, payload })
+
+        const onMessage = ({ type, payload }, sender) => {
+            if (sender.id != browser.runtime.id) return //only messages from bg script of current extension allowed
+            if (typeof type !== 'string') return
+            if (typeof payload != 'undefined' && typeof payload != 'object') return
+            receive(type, payload)
+        }
+        browser.runtime.onMessage.removeListener(onMessage)
+        browser.runtime.onMessage.addListener(onMessage)
+    }
 
     //electron
-    if (typeof require == 'function') {
+    else if (typeof require == 'function') {
         embeded = true
         
         const { ipcRenderer } = require('electron')
-        send = (action, payload) => ipcRenderer.sendToHost('rdh', { action, payload })
-        ipcRenderer.on('rdh', (_, data) => receive(data.action, data.payload))
+        send = (type, payload) => ipcRenderer.sendToHost('RDH', { type, payload })
+
+        const onMessage = (_, data) => receive(data.type, data.payload)
+        ipcRenderer.removeListener('RDH', onMessage)
+        ipcRenderer.on('RDH', onMessage)
     }
+    
     //iframe
     else if (window.self !== window.top) {
         embeded = true
 
-        send = (action, payload)=>
-            window.parent.postMessage({ action, payload }, '*')
+        send = (type, payload)=>
+            window.parent.postMessage({ type, payload }, '*')
 
-        window.addEventListener('message', ({ data, source }) => {
-            if (source !== window.parent || typeof data !== 'object' || typeof data.action !== 'string') return
+        const onMessage = ({ data, source }) => {
+            if (source !== window.parent || typeof data !== 'object' || typeof data.type !== 'string') return
             if (typeof data.payload != 'undefined' && typeof data.payload != 'object') return
-            receive(data.action, data.payload)
-        })
+            receive(data.type, data.payload)
+        }
+        window.removeEventListener('message', onMessage)
+        window.addEventListener('message', onMessage)
     }
 
     //init
     if (!embeded) return
 
     const rdh = new RdHighlight(document.body)
-    rdh.onEdit = (_id) => send('rdh-edit', { _id })
-    rdh.onAdd = (details) => send('rdh-add', details)
+    rdh.onEdit = (_id) => send('RDH_EDIT', { _id })
+    rdh.onAdd = (details) => send('RDH_ADD', details)
 
-    receive = (action, payload)=>{
-        switch(action) {
-            case 'rdh-apply':
+    receive = (type, payload)=>{
+        switch(type) {
+            case 'RDH_APPLY':
                 rdh.apply(payload)
             break
 
-            case 'rdh-config':
+            case 'RDH_CONFIG':
                 if (typeof payload.enabled == 'boolean')
                     rdh.enabled = payload.enabled
                 if (typeof payload.pro == 'boolean')
                     rdh.pro = payload.pro
                 if (typeof payload.nav == 'boolean')
                     rdh.nav = payload.nav
+                if (typeof payload.hotkey == 'boolean')
+                    rdh.hotkey = payload.hotkey
             break
 
-            case 'rdh-scroll':
+            case 'RDH_SCROLL':
                 rdh.scrollToId(payload._id)
             break
         }
     }
 
     //ready
-    send('rdh-ready')
+    send('RDH_READY')
 }

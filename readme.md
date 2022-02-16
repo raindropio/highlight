@@ -1,34 +1,45 @@
 # Highlight
 Should be injected an Iframe or in Electron WebView
 
-## Subscribe to events
-- { action: 'rdh-ready' }                                   Highlighter is ready to receive incoming msgs
-- { action: 'rdh-edit', payload: { _id } }                  Edit specific highlight
-- { action: 'rdh-add', payload: { text, color, note } }     Add new highlight
+### Subscribe to events
+    - { type: 'RDH_READY' }                                   Highlighter is ready to receive incoming msgs
+    - { type: 'RDH_EDIT', payload: { _id } }                  Edit specific highlight
+    - { type: 'RDH_ADD', payload: { text, color, note } }     Add new highlight
 
-## Supported events
-- { action: 'rdh-config', payload: { enabled: true, nav: true, pro: true } }
-- { action: 'rdh-apply', payload: [[...{_id, text, color, note}]] }
-- { action: 'rdh-scroll', payload: { _id } }
+### Supported events
+    - { type: 'RDH_CONFIG', payload: { enabled: true, nav: true, pro: true } }
+    - { type: 'RDH_APPLY', payload: [[...{_id, text, color, note}]] }
+    - { type: 'RDH_SCROLL', payload: { _id } }
 
-## Use in webpage
+### Use as an extension inject script
 ```js
-window.addEventListener('message', ({data, source}) => {
-    if (typeof data != 'object' || typeof data.action != 'string') return
-    const { action, payload } = data
-})
+    browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
+        if (sender.id != browser.runtime.id || typeof type != 'string') return
+    })
 
-iframe.postMessage({ action: 'some', payload: {} }, '*')
+    browser.runtime.sendMessage(null, { type: 'some', payload: {} })
 ```
 
-## Use in electron
+### Iframe
+Example in `test/iframe` folder
+
 ```js
-<webview src="..." preload="./highlight.js"></webview>
+    window.addEventListener('message', ({data, source}) => {
+        if (typeof data != 'object' || typeof data.type != 'string') return
+        const { type, payload } = data
+    })
 
-webview.addEventListener('ipc-message', event => {
-    if (event.channel != 'rdh') return
-    const [{ action, payload }] = event.args
-})
+    iframe.postMessage({ type: 'some', payload: {} }, '*')
+```
 
-webview.send('rdh', { action: 'some', payload: {} })
+### Use in electron
+```js
+    <webview src="..." preload="./highlight.js"></webview>
+
+    webview.addEventListener('ipc-message', ({ channel, args=[] }) => {
+        if (channel != 'RDH') return
+        const [{ type, payload }] = args
+    })
+
+    webview.send('RDH', { type: 'some', payload: {} })
 ```
