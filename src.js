@@ -146,18 +146,38 @@ class RdSelect {
                 display: flex !important;
                 
                 z-index: 99999999 !important;
-                background-color: Window !important;
+                background-color: transparent !important;
                 margin: 4px !important;
                 width: auto !important;
                 height: auto !important;
                 left: 0 !important; top: 0 !important;
-                border-radius: 6px !important;
-                box-shadow: 0 0 0 0.5px ButtonShadow, 0 5px 30px rgb(0 0 0 / 30%) !important;
+                box-shadow: none !important;
                 animation: none !important;
                 transition: opacity .15s ease-in-out !important;
-                overflow: hidden !important;
                 border: 0 !important;
                 padding: 0 !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+            }
+            #${this._idMenu}, #${this._idMenu}:after {
+                border-radius: 6px !important;
+            }
+            #${this._idMenu}:after {
+                content: '' !important;
+                position: absolute !important;
+                left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important;
+                z-index: -1 !important;
+                background-color: Menu !important;
+                box-shadow: 0 0 0 0.5px GrayText, 0 5px 30px rgb(0 0 0 / 30%) !important;
+            }
+            @supports (backdrop-filter: blur(20px)) {
+                #${this._idMenu}:after { opacity: .6 !important; }
+            }
+            @supports (-webkit-backdrop-filter: blur(20px)) {
+                #${this._idMenu}:after {
+                    opacity: .6 !important;
+                    background-color: Window !important;
+                }
             }
             #${this._idMenu}, #${this._idMenu} * {
                 box-sizing: border-box !important;
@@ -171,10 +191,12 @@ class RdSelect {
 
             /* Dropdown */
             #${this._idMenu} > li {
+                border-top-left-radius: 6px !important;
                 display: block !important;
                 max-height: 32px !important;
                 transition: max-height .15s ease-in !important;
                 transition-delay: .25s !important;
+                overflow: hidden !important;
             }
 
             #${this._idMenu} > li:hover:not(:active) {
