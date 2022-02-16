@@ -1,0 +1,16 @@
+{
+  "name": "tasty-help-hate-jwam0",
+  "productName": "tasty-help-hate-jwam0",
+  "description": "My Electron application description",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "exentrich",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "17.0.1"
+  }
+}

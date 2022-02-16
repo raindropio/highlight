@@ -33,6 +33,8 @@ Example in `test/iframe` folder
 ```
 
 ### Use in electron
+Example in `test/electron` folder
+
 ```js
     <webview src="..." preload="./highlight.js"></webview>
 
