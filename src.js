@@ -50,6 +50,9 @@ class RdSelect {
         //add event listeners
         this._parent._document.removeEventListener('selectionchange', this._onSelectionChange)
         this._parent._document.addEventListener('selectionchange', this._onSelectionChange)
+
+        //try
+        this._onSelectionChange()
     }
 
     render() {
@@ -602,11 +605,12 @@ window.onload = function() {
         send = (type, payload)=>
             browser.runtime.sendMessage(null, { type, payload })
 
-        const onMessage = ({ type, payload }, sender) => {
+        const onMessage = ({ type, payload }, sender, done) => {
             if (sender.id != browser.runtime.id) return //only messages from bg script of current extension allowed
             if (typeof type !== 'string') return
             if (typeof payload != 'undefined' && typeof payload != 'object') return
             receive(type, payload)
+            done(true)
         }
         browser.runtime.onMessage.removeListener(onMessage)
         browser.runtime.onMessage.addListener(onMessage)
@@ -666,6 +670,14 @@ window.onload = function() {
 
             case 'RDH_SCROLL':
                 rdh.scrollToId(payload._id)
+            break
+
+            case 'RDH_ADD_SELECTION':
+                rdh.addSelection(payload)
+            break
+
+            case 'RDH_NOTE_SELECTION':
+                rdh.noteSelection()
             break
         }
     }

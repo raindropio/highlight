@@ -1,0 +1,29 @@
+{
+    "manifest_version": 2,
+    "name": "highlight",
+    "version": "1.0",
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://*/*"],
+            "js": ["src.js"]
+        }
+    ],
+    "commands": {
+        "highlight": {
+            "suggested_key": {
+                "default": "Shift+Alt+S"
+            },
+            "description": "Highlight selected text"
+        }
+    },
+    "permissions": [
+        "activeTab",
+        "contextMenus"
+    ],
+    "optional_permissions": [
+        "tabs"
+    ]
+}

@@ -10,14 +10,21 @@ Should be injected an Iframe or in Electron WebView
     - { type: 'RDH_CONFIG', payload: { enabled: true, nav: true, pro: true } }
     - { type: 'RDH_APPLY', payload: [[...{_id, text, color, note}]] }
     - { type: 'RDH_SCROLL', payload: { _id } }
+    - { type: 'RDH_ADD_SELECTION' }
+    - { type: 'RDH_NOTE_SELECTION' }
 
-### Use as an extension inject script
+### Use as an webextension inject script
+Example in `test/webextension` folder
+
 ```js
     browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
         if (sender.id != browser.runtime.id || typeof type != 'string') return
     })
 
-    browser.runtime.sendMessage(null, { type: 'some', payload: {} })
+    browser.tabs.sendMessage(sender.tab.id, { type: 'some', payload: {} }, isReceived=>{
+        if (!isReceived)
+            browser.tabs.reload(sender.tab.id)
+    })
 ```
 
 ### Iframe
