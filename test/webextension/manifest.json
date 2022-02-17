@@ -8,7 +8,8 @@
     "content_scripts": [
         {
             "matches": ["https://*/*"],
-            "js": ["src.js"]
+            "js": ["src.js"],
+            "run_at": "document_start"
         }
     ],
     "commands": {

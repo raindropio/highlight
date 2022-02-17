@@ -1,17 +1,6 @@
 const browser = window.browser || window.chrome
 
-let highlights = [
-    {
-        _id: 'asdas9329',
-        text: `I spend all day long slinging URLs around. Mostly, when I copy and paste a URL it’s treated as a string of characters. But you and I know that a URL is heavy. A URL`,
-        note: 'some note',
-        color: 'blue'
-    },
-    {
-        _id: '23dsfsdf',
-        text: 'What Electric Tables Could Be'
-    }
-]
+let highlights = []
 
 browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
     if (sender.id != browser.runtime.id || typeof type != 'string') return
@@ -21,7 +10,7 @@ browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
             browser.tabs.sendMessage(sender.tab.id, {
                 type: 'RDH_CONFIG',
                 payload: {
-                    enabled: true,
+                    enabled: highlights.length ? true : false,
                     nav: true,
                     pro: true
                 }
@@ -48,6 +37,12 @@ browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
                 _id: String(new Date().getTime())
             })
             browser.tabs.sendMessage(sender.tab.id, {
+                type: 'RDH_CONFIG',
+                payload: {
+                    enabled: true
+                }
+            })
+            browser.tabs.sendMessage(sender.tab.id, {
                 type: 'RDH_APPLY',
                 payload: highlights
             })
@@ -55,38 +50,21 @@ browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
     }
 })
 
-const highlighCurrentPageSelection = function() {
-    function addSelection() {
-        browser.tabs.query({active: true, currentWindow: true}, ([tab])=>{
-            browser.tabs.sendMessage(tab.id, {
-                type: 'RDH_ADD_SELECTION'
-            }, done=>{
-                if (!done && confirm('Please reload page to start using highlights'))
-                    browser.tabs.reload()
-            })
-        })
-    }
-
-    browser.permissions.contains({
-        permissions: ['tabs']
-    }, have=>{
-        if (have)
-            addSelection()
-        else
-            browser.permissions.request({
-                permissions: ['tabs']
-            }, granted=>{
-                if (granted)
-                    addSelection()
-            })
-    })
-}
-
 //hotkeys
 browser.commands.onCommand.addListener(command=>{
     switch(command) {
         case 'highlight':
-            highlighCurrentPageSelection()
+            browser.permissions.request({ permissions: ['tabs'] }, granted=>{
+                if (!granted) {
+                    alert('Permission is required')
+                } else {
+                    browser.tabs.query({ active: true, currentWindow: true }, ([tab])=>{
+                        browser.tabs.sendMessage(tab.id, {
+                            type: 'RDH_ADD_SELECTION'
+                        })
+                    })
+                }
+            })
         break
     }
 })
@@ -98,10 +76,18 @@ browser.contextMenus.create({
     contexts: ["selection"]
 })
 
-browser.contextMenus.onClicked.addListener(function(info) {
+browser.contextMenus.onClicked.addListener(function(info, tab) {
     switch (info.menuItemId) {
         case "highlight":
-            highlighCurrentPageSelection()
+            browser.permissions.request({ permissions: ['tabs'] }, granted=>{
+                if (!granted) {
+                    alert('Permission is required')
+                } else {
+                    browser.tabs.sendMessage(tab.id, {
+                        type: 'RDH_ADD_SELECTION'
+                    })
+                }
+            })
         break;
     }
 })

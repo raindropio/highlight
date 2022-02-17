@@ -348,7 +348,8 @@ class RdHighlight {
         if (typeof this.onAdd != 'function') return
 
         const selection = this._window.getSelection()
-        const text = selection.toString().trim()
+        if (!selection.rangeCount) return
+        const text = selection.getRangeAt(0).toString().trim()
 
         if (!this.test(text)) {
             alert('⚠️ Unfortunately we can\'t add this text')
@@ -591,67 +592,68 @@ class RdHighlight {
 
 
 /* Auto-init for embeded pages */
-window.onload = function() {
-    //generic event handlers
-    let embeded = false
-    let send = ()=>{}       //(type,payload)
-    let receive = ()=>{}    //(type,payload)
+let rdh
+let rdhEmbed = {
+    enabled: false,
+    wait: [],
+    send: ()=>{},       //(type,payload)
+    receive: ()=>{}    //(type,payload)
+}
 
-    //extension inject script
-    if ((typeof chrome == 'object' && chrome.runtime) || (typeof browser == 'object' && browser.runtime)) {
-        const browser = window.browser || window.chrome
-        embeded = true
+//extension inject script
+if ((typeof chrome == 'object' && chrome.runtime) || (typeof browser == 'object' && browser.runtime)) {
+    const browser = window.browser || window.chrome
+    rdhEmbed.enabled = true
 
-        send = (type, payload)=>
-            browser.runtime.sendMessage(null, { type, payload })
+    rdhEmbed.send = (type, payload)=>
+        browser.runtime.sendMessage(null, { type, payload })
 
-        const onMessage = ({ type, payload }, sender, done) => {
-            if (sender.id != browser.runtime.id) return //only messages from bg script of current extension allowed
-            if (typeof type !== 'string') return
-            if (typeof payload != 'undefined' && typeof payload != 'object') return
-            receive(type, payload)
-            done(true)
-        }
-        browser.runtime.onMessage.removeListener(onMessage)
-        browser.runtime.onMessage.addListener(onMessage)
+    const onMessage = ({ type, payload }, sender) => {
+        if (sender.id != browser.runtime.id) return //only messages from bg script of current extension allowed
+        if (typeof type !== 'string') return
+        if (typeof payload != 'undefined' && typeof payload != 'object') return
+        rdhEmbed.receive(type, payload)
     }
+    browser.runtime.onMessage.removeListener(onMessage)
+    browser.runtime.onMessage.addListener(onMessage)
+}
 
-    //electron
-    else if (typeof require == 'function') {
-        embeded = true
-        
-        const { ipcRenderer } = require('electron')
-        send = (type, payload) => ipcRenderer.sendToHost('RDH', { type, payload })
-
-        const onMessage = (_, data) => receive(data.type, data.payload)
-        ipcRenderer.removeListener('RDH', onMessage)
-        ipcRenderer.on('RDH', onMessage)
-    }
+//electron
+else if (typeof require == 'function') {
+    rdhEmbed.enabled = true
     
-    //iframe
-    else if (window.self !== window.top) {
-        embeded = true
+    const { ipcRenderer } = require('electron')
+    rdhEmbed.send = (type, payload) => ipcRenderer.sendToHost('RDH', { type, payload })
 
-        send = (type, payload)=>
-            window.parent.postMessage({ type, payload }, '*')
+    const onMessage = (_, data) => rdhEmbed.receive(data.type, data.payload)
+    ipcRenderer.removeListener('RDH', onMessage)
+    ipcRenderer.on('RDH', onMessage)
+}
 
-        const onMessage = ({ data, source }) => {
-            if (source !== window.parent || typeof data !== 'object' || typeof data.type !== 'string') return
-            if (typeof data.payload != 'undefined' && typeof data.payload != 'object') return
-            receive(data.type, data.payload)
-        }
-        window.removeEventListener('message', onMessage)
-        window.addEventListener('message', onMessage)
+//iframe
+else if (window.self !== window.top) {
+    rdhEmbed.enabled = true
+
+    rdhEmbed.send = (type, payload)=>
+        window.parent.postMessage({ type, payload }, '*')
+
+    const onMessage = ({ data, source }) => {
+        if (source !== window.parent || typeof data !== 'object' || typeof data.type !== 'string') return
+        if (typeof data.payload != 'undefined' && typeof data.payload != 'object') return
+        rdhEmbed.receive(data.type, data.payload)
     }
+    window.removeEventListener('message', onMessage)
+    window.addEventListener('message', onMessage)
+}
 
-    //init
-    if (!embeded) return
+if (rdhEmbed.enabled){
+    rdhEmbed.receive = (type, payload)=>{
+        //document is not ready yet, add to wait list
+        if (!rdh){
+            rdhEmbed.wait.push({ type, payload })
+            return
+        }
 
-    const rdh = new RdHighlight(document.body)
-    rdh.onEdit = (_id) => send('RDH_EDIT', { _id })
-    rdh.onAdd = (details) => send('RDH_ADD', details)
-
-    receive = (type, payload)=>{
         switch(type) {
             case 'RDH_APPLY':
                 rdh.apply(payload)
@@ -682,6 +684,27 @@ window.onload = function() {
         }
     }
 
-    //ready
-    send('RDH_READY')
+    function RdhOnDocumentLoad() {
+        window.removeEventListener('load', RdhOnDocumentLoad)
+
+        rdh = new RdHighlight(document.body)
+        rdh.onEdit = (_id) => rdhEmbed.send('RDH_EDIT', { _id })
+        rdh.onAdd = (details) => rdhEmbed.send('RDH_ADD', details)
+
+        //repeat waiting messages
+        if (rdhEmbed.wait.length) {
+            for(const { type, payload } of rdhEmbed.wait)
+                rdhEmbed.receive(type, payload)
+            rdhEmbed.enabled = []
+        }
+
+        rdhEmbed.send('RDH_READY', { url: location.href })
+    }
+    
+    if (document.readyState == 'complete')
+        RdhOnDocumentLoad()
+    else {
+        window.removeEventListener('load', RdhOnDocumentLoad)
+        window.addEventListener('load', RdhOnDocumentLoad)
+    }
 }

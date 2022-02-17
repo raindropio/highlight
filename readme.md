@@ -2,9 +2,9 @@
 Should be injected an Iframe or in Electron WebView
 
 ### Subscribe to events
-    - { type: 'RDH_READY' }                                   Highlighter is ready to receive incoming msgs
-    - { type: 'RDH_EDIT', payload: { _id } }                  Edit specific highlight
-    - { type: 'RDH_ADD', payload: { text, color, note } }     Add new highlight
+    - { type: 'RDH_READY', payload: { url } }               Highlighter is ready to receive incoming msgs
+    - { type: 'RDH_EDIT', payload: { _id } }                Edit specific highlight
+    - { type: 'RDH_ADD', payload: { text, color, note } }   Add new highlight
 
 ### Supported events
     - { type: 'RDH_CONFIG', payload: { enabled: true, nav: true, pro: true } }
@@ -21,10 +21,7 @@ Example in `test/webextension` folder
         if (sender.id != browser.runtime.id || typeof type != 'string') return
     })
 
-    browser.tabs.sendMessage(sender.tab.id, { type: 'some', payload: {} }, isReceived=>{
-        if (!isReceived)
-            browser.tabs.reload(sender.tab.id)
-    })
+    browser.tabs.sendMessage(sender.tab.id, { type: 'some', payload: {} })
 ```
 
 ### Iframe
