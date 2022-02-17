@@ -382,18 +382,17 @@ class RdHighlight {
         for(const [node, phrase] of candidates){
             //create text range to be highlighted
             var range = new Range()
-            range.setStart(
-                node, 
-                i == 0 ? 
-                    Math.max(node.textContent.indexOf(phrase), 0) : 
-                    0
-            )
-            range.setEnd(
-                node, 
-                i == candidates.size-1 ? 
-                    Math.min(node.textContent.lastIndexOf(phrase) + phrase.length, node.textContent.length) : 
-                    node.textContent.length
-            )
+            let start = 0
+            let end = node.textContent.length
+
+            //first or last node
+            if (i == 0 || i == candidates.size-1) {
+                start = Math.max(node.textContent.indexOf(phrase), 0)
+                end = start + phrase.length
+            }
+
+            range.setStart(node, start)
+            range.setEnd(node, end)
 
             //create mark tag
             const mark = this._document.createElement('mark')
@@ -578,7 +577,10 @@ class RdHighlight {
         for(const child of node.childNodes)
             switch(child.nodeType) {
                 case 1: //element node
-                    if (child.offsetParent)
+                    if (
+                        child.offsetParent && //ignore invisible
+                        !child.hasAttribute(this._attrId) //ignore already marked elements
+                    )
                         textNodes.push(...this._getTextNodes(child)); 
                     break
                 case 3: //text node
