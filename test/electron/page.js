@@ -35,8 +35,7 @@ window.onload = ()=>{
                     payload: {
                         enabled: true,
                         nav: true,
-                        pro: true,
-                        hotkey: true
+                        pro: true
                     }
                 })
                 webview.send('RDH', {

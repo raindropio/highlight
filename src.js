@@ -1,29 +1,3 @@
-class RdHotkey {
-    _parent = null //RdHighlight
-
-    constructor(parent) {
-        this._parent = parent
-
-        //bind
-        this._onKeyDown = this._onKeyDown.bind(this)
-
-        //add event listeners
-        this._parent._window.removeEventListener('keydown', this._onKeyDown)
-        this._parent._window.addEventListener('keydown', this._onKeyDown)
-    }
-
-    _onKeyDown(e) {
-        if (!this._parent.hotkey) 
-            return
-
-        if (e.code == 'KeyS' && e.altKey && e.shiftKey){
-            e.preventDefault()
-            e.stopPropagation()
-            this._parent.addSelection()
-        }
-    }
-}
-
 class RdSelect {
     _parent = null //RdHighlight
     _menu = null
@@ -262,7 +236,6 @@ class RdSelect {
         rdh.enabled = true
         rdh.pro = true
         rdh.nav = true
-        rdh.hotkey = true
 
         rdh.apply([...{_id, text, color, note}])
         rdh.onEdit = (id) => {}
@@ -283,7 +256,6 @@ class RdHighlight {
     enabled = false
     pro = false
     nav = false
-    hotkey = false
 
     //events
     onEdit = ()=>{} //(id)=>{}
@@ -294,9 +266,8 @@ class RdHighlight {
         this._document = this._container.ownerDocument
         this._window = this._document.defaultView
 
-        //init select menu / hotkeys
+        //init select menu
         this._select = new RdSelect(this)
-        this._hotkey = new RdHotkey(this)
 
         //bind
         this._markClick = this._markClick.bind(this)
@@ -668,8 +639,6 @@ if (rdhEmbed.enabled){
                     rdh.pro = payload.pro
                 if (typeof payload.nav == 'boolean')
                     rdh.nav = payload.nav
-                if (typeof payload.hotkey == 'boolean')
-                    rdh.hotkey = payload.hotkey
             break
 
             case 'RDH_SCROLL':
