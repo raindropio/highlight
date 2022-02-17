@@ -1,3 +1,52 @@
+function RdPrompt(x, y, placeholder, callback){
+    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    const p = window.open('', 'prompt', `popup,frame=false,width=300,height=150,left=${x||0},top=${y||0}`)
+    p.document.documentElement.innerHTML = `
+        <html><head>
+            <title>${isDarkMode ? '🗨' : '💬'}</title><meta name="color-scheme" content="light dark">
+            <style>
+                html, body, textarea {
+                    box-sizing: border-box;
+                    display: block;
+                    width: 100vw;height: 100vh;
+                    margin: 0;outline: none;border: 0;overflow: hidden;
+                    font: 14px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+                    resize: none;
+                }
+                @supports (-webkit-backdrop-filter: blur(1px)) {
+                    textarea { background: Window; }
+                }
+                textarea {
+                    padding: 10px;
+                }
+            </style>
+        </head><body><textarea type="text" autoFocus placeholder="${placeholder}"></textarea></body></html>
+    `
+    
+    const textarea = p.document.querySelector('textarea')
+    textarea.addEventListener('blur', p.close)
+    textarea.addEventListener('keydown', e=>{
+        switch(e.code) {
+            case 'Enter':
+                if (e.metaKey || e.ctrlKey)
+                    e.target.value+="\n"
+                else if (!e.shiftKey) {
+                    e.preventDefault()
+                    callback(textarea.value)
+                    p.close()
+                }
+            break
+            case 'Escape':
+                e.preventDefault()
+                e.stopPropagation()
+                callback('')
+                p.close()
+            break
+        }
+    })
+    p.addEventListener('blur', p.close)
+}
+
 class RdSelect {
     _parent = null //RdHighlight
     _menu = null
@@ -24,6 +73,10 @@ class RdSelect {
         //add event listeners
         this._parent._document.removeEventListener('selectionchange', this._onSelectionChange)
         this._parent._document.addEventListener('selectionchange', this._onSelectionChange)
+        this._parent._window.removeEventListener('focus', this.render)
+        this._parent._window.addEventListener('focus', this.render)
+        this._parent._window.removeEventListener('blur', this.render)
+        this._parent._window.addEventListener('blur', this.render)
 
         //try
         this._onSelectionChange()
@@ -33,7 +86,7 @@ class RdSelect {
         const selection = this._parent._window.getSelection()
 
         //remove if no selection yet
-        if (!this._parent.enabled || !selection.toString().trim()){
+        if (!this._parent.enabled || !selection.toString().trim() || !this._parent._document.hasFocus()){
             if (this._menu) this._menu.setAttribute('hidden', 'true')
             return
         }
@@ -53,7 +106,7 @@ class RdSelect {
         clearTimeout(this._selectTimeout)
         this._selectTimeout = setTimeout(
             this.render,
-            this._parent._window.getSelection().isCollapsed ? 0 : 250
+            (this._parent._window.getSelection() || {}).isCollapsed ? 0 : 250
         )
     }
 
@@ -67,7 +120,7 @@ class RdSelect {
 
     _addNoteClick(e) {
         e.preventDefault()
-        this._parent.noteSelection()
+        this._parent.noteSelection(e.screenX - 14, e.screenY - 14)
     }
 
     /* Menu */
@@ -139,8 +192,8 @@ class RdSelect {
                 backdrop-filter: blur(20px) !important;
                 -webkit-backdrop-filter: blur(20px) !important;
             }
-            #${this._idMenu}, #${this._idMenu}:after {
-                border-radius: 6px !important;
+            #${this._idMenu}, #${this._idMenu} *, #${this._idMenu}:after {
+                border-radius: 5px !important;
             }
             #${this._idMenu}:after {
                 content: '' !important;
@@ -171,7 +224,6 @@ class RdSelect {
 
             /* Dropdown */
             #${this._idMenu} > li {
-                border-top-left-radius: 6px !important;
                 display: block !important;
                 max-height: 32px !important;
                 transition: max-height .15s ease-in !important;
@@ -331,15 +383,16 @@ class RdHighlight {
         selection.removeAllRanges()
     }
 
-    noteSelection() {
+    noteSelection(x, y) {
         if (!this.pro)
             return alert(`Notes/annotations only available in Pro plan`)
 
-        const note = prompt('Add note', '')||''
-        if (note.trim())
+        RdPrompt(x, y, 'Add note...', note=>{
+            if (note.trim())
             this.addSelection({
                 note
             })
+        })
     }
 
     copySelection() {
