@@ -86,7 +86,9 @@ class RdSelect {
         const selection = this._parent._window.getSelection()
 
         //remove if no selection yet
-        if (!this._parent.enabled || !selection.toString().trim() || !this._parent._document.hasFocus()){
+        if (!this._parent.enabled || 
+            !this._haveSelection() || 
+            !this._parent._document.hasFocus()){
             if (this._menu) this._menu.setAttribute('hidden', 'true')
             return
         }
@@ -101,12 +103,17 @@ class RdSelect {
         this._menu.removeAttribute('hidden')
     }
 
+    _haveSelection() {
+        const selection = this._parent._window.getSelection()
+        return selection.rangeCount && !selection.isCollapsed && selection.toString().trim()
+    }
+
     /* User changed document selection event */
     _onSelectionChange() {
         clearTimeout(this._selectTimeout)
         this._selectTimeout = setTimeout(
             this.render,
-            (this._parent._window.getSelection() || {}).isCollapsed ? 0 : 250
+            this._haveSelection() ? 200 : 0
         )
     }
 
