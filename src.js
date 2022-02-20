@@ -9,7 +9,7 @@ function RdPrompt(x, y, placeholder, defaultValue='', callback){
                     box-sizing: border-box;
                     display: block;
                     width: 100vw;height: 100vh;
-                    margin: 0;outline: none;border: 0;overflow: hidden;
+                    margin: 0;outline: none;border: 0;
                     font: 14px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
                     resize: none;
                 }

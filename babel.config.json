@@ -10,6 +10,11 @@
                 }
             }
         ],
-        "minify"
+        ["minify", {
+            "removeConsole": true
+        }]
+    ],
+    "plugins": [
+        "babel-plugin-remove-template-literals-whitespace"
     ]
 }
