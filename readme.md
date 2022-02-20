@@ -3,8 +3,9 @@ Should be injected an Iframe or in Electron WebView
 
 ### Subscribe to events
     - { type: 'RDH_READY', payload: { url } }               Highlighter is ready to receive incoming msgs
-    - { type: 'RDH_EDIT', payload: { _id } }                Edit specific highlight
     - { type: 'RDH_ADD', payload: { text, color, note } }   Add new highlight
+    - { type: 'RDH_UPDATE', payload: { _id, note... } }     Update specific highlight, only updated fields are present in payload!
+    - { type: 'RDH_REMOVE', payload: { _id } }              Remove specific highlight
 
 ### Supported events
     - { type: 'RDH_CONFIG', payload: { enabled: true, nav: true, pro: true } }

@@ -1,4 +1,4 @@
-function RdPrompt(x, y, placeholder, callback){
+function RdPrompt(x, y, placeholder, defaultValue='', callback){
     const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
     const p = window.open('', 'prompt', `popup,frame=false,width=300,height=150,left=${x||0},top=${y||0}`)
     p.document.documentElement.innerHTML = `
@@ -22,47 +22,53 @@ function RdPrompt(x, y, placeholder, callback){
             </style>
         </head><body><textarea type="text" autoFocus placeholder="${placeholder}"></textarea></body></html>
     `
-    
+
+    function submit(e) {
+        e.preventDefault()
+        e.stopPropagation()
+        callback(textarea.value)
+        p.close()
+    }
+
     const textarea = p.document.querySelector('textarea')
-    textarea.addEventListener('blur', p.close)
+    textarea.value = defaultValue
+    textarea.setSelectionRange(0, textarea.value.length)
+    textarea.addEventListener('blur', submit)
     textarea.addEventListener('keydown', e=>{
         switch(e.code) {
             case 'Enter':
                 if (e.metaKey || e.ctrlKey)
                     e.target.value+="\n"
-                else if (!e.shiftKey) {
-                    e.preventDefault()
-                    callback(textarea.value)
-                    p.close()
-                }
+                else if (!e.shiftKey)
+                    submit(e)
             break
             case 'Escape':
-                e.preventDefault()
-                e.stopPropagation()
-                callback('')
-                p.close()
+                textarea.value = defaultValue
+                submit(e)
             break
         }
     })
-    p.addEventListener('blur', p.close)
+    p.addEventListener('blur', submit)
 }
 
 class RdTooltip {
     _parent = null //RdHighlight
     _menu = null
-    _listeners = {} //{ onColorClick(color), onNoteClick(x,y) }
+    _listeners = {} //{ onColorClick(color), onNoteClick(x,y), onRemoveClick() }
 
+    _hidden = true
     _colors = ['yellow', 'blue', 'green', 'red']
 
     _classMenu = 'rdhm'
     _classButtonColor = 'rdhbh'
     _classButtonNote = 'rdhbn'
+    _classButtonRemove = 'rdhbr'
     _idCss = 'rdhss'
     _attrColor = 'data-rdhsc'
 
-    constructor(parent, { onColorClick, onNoteClick }) {
+    constructor(parent, { onColorClick, onNoteClick, onRemoveClick }) {
         this._parent = parent
-        this._listeners = { onColorClick, onNoteClick }
+        this._listeners = { onColorClick, onNoteClick, onRemoveClick }
 
         //init
         this._initStyles()
@@ -71,19 +77,66 @@ class RdTooltip {
         //bind
         this.show = this.show.bind(this)
         this.hide = this.hide.bind(this)
+        this._windowMouseDown = this._windowMouseDown.bind(this)
+        this._windowResize = this._windowResize.bind(this)
+
+        //events
+        this._parent._window.removeEventListener('mousedown', this._windowMouseDown)
+        this._parent._window.addEventListener('mousedown', this._windowMouseDown)
+        this._parent._window.removeEventListener('resize', this._windowResize)
+        this._parent._window.addEventListener('resize', this._windowResize)
     }
 
-    show(x, y) {
+    show(x, y, activeColor='', activeNote=false, activeRemove=false) {
+        //position
         let left = x
         let top = y
-        if (this._parent._window.outerWidth <= left + 64) left = left - 64
+        if (this._parent._window.outerWidth <= left + 80) left = left - 80
         if (this._parent._window.scrollY > top) top = this._parent._window.scrollY
         this._menu.setAttribute('style', `left: ${left}px !important; top: ${top}px !important;`)
+
+        //color active
+        this._menu.querySelectorAll(`[${this._attrColor}]`).forEach(e=>e.removeAttribute('data-active'))
+        if (activeColor) {
+            const color = this._menu.querySelector(`[${this._attrColor}="${activeColor.trim()}"]`)
+            if (color) color.setAttribute('data-active', 'true')
+        }
+
+        //note active
+        const note = this._menu.querySelector(`.${this._classButtonNote}`)
+        if (activeNote)
+            note.setAttribute('data-badge', '1')
+        else
+            note.removeAttribute('data-badge')
+
+        //remove button visibility
+        const remove = this._menu.querySelector(`.${this._classButtonRemove}`)
+        remove.setAttribute('hidden', activeRemove ? 'false' : 'true')
+
+        //menu visibility
         this._menu.removeAttribute('hidden')
+        this._hidden = false
     }
 
     hide() {
-        if (this._menu) this._menu.setAttribute('hidden', 'true')
+        if (this._menu) {
+            this._hidden = true
+            this._menu.setAttribute('hidden', 'true')
+        }
+    }
+
+    /* Window events */
+    _windowMouseDown(e) {
+        if (this._hidden) return
+        if (e.target == this._menu) return
+        if (this._menu.contains(e.target)) return
+
+        this.hide()
+    }
+
+    _windowResize() {
+        if (this._hidden) return
+        this.hide()
     }
 
     /* Buttons */
@@ -97,6 +150,12 @@ class RdTooltip {
         e.preventDefault()
         if (typeof this._listeners.onNoteClick != 'function') return
         this._listeners.onNoteClick(e.screenX - 14, e.screenY - 14)
+    }
+
+    _removeClick(e) {
+        e.preventDefault()
+        if (typeof this._listeners.onRemoveClick != 'function') return
+        this._listeners.onRemoveClick()
     }
 
     /* Menu */
@@ -116,12 +175,11 @@ class RdTooltip {
             </li>
             
             <button class="${this._classButtonNote}" title="Add note...">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
-                    <g fill-rule="evenodd">
-                        <path fill-rule="nonzero" d="M15 1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3v1.9a1 1 0 0 1-1.6.7L10.2 16H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3h11Zm0 1H4c-1 0-2 .8-2 1.9V13c0 1 .8 2 1.9 2h6.7l3.4 2.9V15h1c1 0 2-.8 2-1.9V4c0-1-.8-2-1.9-2H15Z"/>
-                        <path d="M10 5v3h3v1h-3v3H9V9H6V8h3V5h1Z"/>
-                    </g>
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M15 1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3v1.9a1 1 0 0 1-1.6.7L10.2 16H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3h11Zm0 1H4c-1 0-2 .8-2 1.9V13c0 1 .8 2 1.9 2h6.7l3.4 2.9V15h1c1 0 2-.8 2-1.9V4c0-1-.8-2-1.9-2H15Zm-5 3v3h3v1h-3v3H9V9H6V8h3V5h1Z"/></svg>
+            </button>
+
+            <button class="${this._classButtonRemove}" title="Delete">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M12 1c.6 0 1 .4 1 1v2h5c.6 0 1 .4 1 1h-2v12c0 1-1 2-2 2H5c-1 0-2-1-2-2V5H1c0-.6.4-1 1-1h5V2c0-.6.4-1 1-1Zm4 4H4v11.8c0 .7.4 1.2 1 1.2h10c.6 0 1-.5 1-1.2V5ZM9 9v5H8V9h1Zm3 0v5h-1V9h1Zm-.5-7h-3c-.3 0-.5.2-.5.5V4h4V2.5c0-.3-.2-.5-.5-.5Z"/></svg>
             </button>
         `
         this._parent._container.appendChild(this._menu)
@@ -139,6 +197,13 @@ class RdTooltip {
                 this._noteClick = this._noteClick.bind(this)
                 e.removeEventListener('click', this._noteClick)
                 e.addEventListener('click', this._noteClick)
+            })
+
+        this._menu.querySelectorAll(`.${this._classButtonRemove}`)
+            .forEach(e=>{
+                this._removeClick = this._removeClick.bind(this)
+                e.removeEventListener('click', this._removeClick)
+                e.addEventListener('click', this._removeClick)
             })
     }
 
@@ -193,14 +258,16 @@ class RdTooltip {
                 user-select: none !important;
                 -webkit-user-select: none !important;
             }
-            .${this._classMenu}[hidden] {
+            .${this._classMenu}[hidden='true'] {
                 pointer-events: none !important;
                 opacity: 0 !important;
             }
 
             /* Dropdown */
             .${this._classMenu} > li {
-                display: block !important;
+                display: flex !important;
+                flex-direction: column !important;
+                flex-wrap: wrap; !important;
                 max-height: 32px !important;
                 transition: max-height .15s ease-in !important;
                 transition-delay: .25s !important;
@@ -228,12 +295,37 @@ class RdTooltip {
                 justify-content: center !important;
                 transition: background .1s linear, color .1s linear !important;
                 filter: none !important;
+                position: relative !important;
             }
             .${this._classMenu} button:hover {
                 background: rgba(100,100,100,.3) !important;
             }
             .${this._classMenu} button:active {
                 filter: brightness(50%) !important;
+            }
+            .${this._classMenu} button[hidden='true'] {
+                display: none !important;
+            }
+            .${this._classMenu} button[data-badge]:before {
+                content: attr(data-badge) !important;
+                width: 16px !important;
+                height: 16px !important;
+                border-radius: 14px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: red !important;
+                color: white !important;
+                position: absolute !important;
+                top: -3px !important;
+                right: -3px !important;
+                font-size: 11px !important;
+                line-height: 11px !important;
+                font-weight: 600 !important;
+                box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2), 0 0 0 0.5px rgba(0,0,0,.2), 0 3px 15px rgba(0,0,0,.2) !important;
+            }
+            .${this._classMenu} button[data-active='true'] {
+                order: -1 !important;
             }
 
             .${this._classMenu} * {
@@ -285,10 +377,15 @@ class RdSelection {
         this._onSelectionChange()
     }
 
+    have() {
+        const selection = this._parent._window.getSelection()
+        return selection && selection.rangeCount>0 && !selection.isCollapsed && selection.toString().trim().length>0
+    }
+
     render() {
         //remove tooltip if no selection yet
         if (!this._parent.enabled || 
-            !this._haveSelection() || 
+            !this.have() || 
             !this._parent._document.hasFocus()){
             this._tooltip.hide()
             return
@@ -303,14 +400,9 @@ class RdSelection {
     }
 
     /* User changed document selection event */
-    _haveSelection() {
-        const selection = this._parent._window.getSelection()
-        return selection.rangeCount && !selection.isCollapsed && selection.toString().trim()
-    }
-
     _onSelectionChange() {
         clearTimeout(this._selectTimeout)
-        this._selectTimeout = setTimeout(this.render, this._haveSelection() ? 200 : 0)
+        this._selectTimeout = setTimeout(this.render, this.have() ? 200 : 0)
     }
 }
 
@@ -330,6 +422,10 @@ class RdHighlight {
     _window = null
     _document = null
 
+    _selection = null
+    _tooltip = null
+    _activeMarkId = null
+
     _attrId = 'data-rdhid'
     _idCss = 'rdhs'
     _cssColorVar = '--rdhc'
@@ -342,7 +438,8 @@ class RdHighlight {
     nav = false
 
     //events
-    onEdit = ()=>{} //(id)=>{}
+    onUpdate = ()=>{} //({_id, note...})=>{}
+    onRemove = ()=>{} //({_id})=>{}
     onAdd = ()=>{} //({text,color,note})=>{}
 
     constructor(container) {
@@ -350,12 +447,20 @@ class RdHighlight {
         this._document = this._container.ownerDocument
         this._window = this._document.defaultView
 
-        //init select menu
-        this._select = new RdSelection(this)
-
         //bind
         this._markClick = this._markClick.bind(this)
+        this._markColorClick = this._markColorClick.bind(this)
+        this._markNoteClick = this._markNoteClick.bind(this)
+        this._markRemoveClick = this._markRemoveClick.bind(this)
         this._navClick = this._navClick.bind(this)
+
+        //init select menu
+        this._selection = new RdSelection(this)
+        this._tooltip = new RdTooltip(this, {
+            onColorClick: this._markColorClick,
+            onNoteClick: this._markNoteClick,
+            onRemoveClick: this._markRemoveClick
+        })
     }
 
     /* Mark highlight array of { text, color, _id } */
@@ -419,7 +524,7 @@ class RdHighlight {
         if (!this.pro)
             return alert(`Notes/annotations only available in Pro plan`)
 
-        RdPrompt(x, y, 'Add note...', note=>{
+        RdPrompt(x, y, 'Add note...', '', note=>{
             if (note.trim())
             this.addSelection({
                 note
@@ -490,17 +595,59 @@ class RdHighlight {
         }
     }
 
-    /* Mark click event listener */
+    /* Mark mouse event listener */
     _markClick(e) {
-        if (typeof this.onEdit != 'function') return
+        if (e.currentTarget.parentElement.tagName == 'A') return
+
         e.preventDefault()
         e.stopPropagation()
-        if (e.target.tagName == 'A') return
+
         const mark = e.currentTarget
         const id = mark.getAttribute(this._attrId)
-        this.onEdit(id)
+        const color = (getComputedStyle(mark).getPropertyValue(this._cssColorVar) || '').trim()
+        const hasNote = mark.hasAttribute('title')
+
+        this._activeMarkId = id
+        this._tooltip.show(e.pageX, e.pageY, color, hasNote, true)
     }
 
+    _markColorClick(color) {
+        if (!this._activeMarkId) return
+
+        this.onUpdate({
+            _id: this._activeMarkId,
+            color
+        })
+        this._tooltip.hide()
+    }
+
+    _markNoteClick(x, y) {
+        if (!this._activeMarkId) return
+
+        const mark = this._container.querySelector(`[${this._attrId}="${this._activeMarkId}"]`)
+        const note = mark.getAttribute('title') || ''
+
+        RdPrompt(x, y, 'Note...', note, updated=>{
+            this.onUpdate({
+                _id: this._activeMarkId,
+                note: updated
+            })
+        })
+        this._tooltip.hide()
+    }
+
+    _markRemoveClick() {
+        if (!this._activeMarkId) return
+
+        const mark = this._container.querySelector(`[${this._attrId}="${this._activeMarkId}"]`)
+        const confirmed = mark.hasAttribute('title') ? confirm('Remove highlight?') : true
+        if (!confirmed) return
+
+        this.onRemove({ _id: this._activeMarkId })
+        this._tooltip.hide()
+    }
+
+    /* Navigation event listener */
     _navClick(e) {
         e.preventDefault()
         e.stopPropagation()
@@ -526,9 +673,6 @@ class RdHighlight {
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.7) 0, rgba(255,255,255,.7) 100%) !important;
                 color: black !important;
                 cursor: pointer !important;
-            }
-            mark[${this._attrId}][title] {
-                cursor: context-menu !important;
             }
             .${this._classNoteIcon} {
                 display: inline !important;
@@ -744,8 +888,9 @@ if (rdhEmbed.enabled){
         window.removeEventListener('load', RdhOnDocumentLoad)
 
         rdh = new RdHighlight(document.body)
-        rdh.onEdit = (_id) => rdhEmbed.send('RDH_EDIT', { _id })
-        rdh.onAdd = (details) => rdhEmbed.send('RDH_ADD', details)
+        rdh.onUpdate = details => rdhEmbed.send('RDH_UPDATE', details)
+        rdh.onRemove = details => rdhEmbed.send('RDH_REMOVE', details)
+        rdh.onAdd = details => rdhEmbed.send('RDH_ADD', details)
 
         //repeat waiting messages
         if (rdhEmbed.wait.length) {

@@ -21,14 +21,25 @@ browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
             })
         break
 
-        case 'RDH_EDIT':
-            if (confirm(`Remove ${payload._id}?`)){
-                highlights = highlights.filter(({ _id }) => _id != payload._id)
-                browser.tabs.sendMessage(sender.tab.id, {
-                    type: 'RDH_APPLY',
-                    payload: highlights
-                })
+        case 'RDH_UPDATE':
+            let i = highlights.findIndex(({ _id }) => _id == payload._id)
+            if (i != -1){
+                for(const [key,val] of Object.entries(payload))
+                    highlights[i][key] = val
             }
+
+            browser.tabs.sendMessage(sender.tab.id, {
+                type: 'RDH_APPLY',
+                payload: highlights
+            })
+        break
+
+        case 'RDH_REMOVE':
+            highlights = highlights.filter(({ _id }) => _id != payload._id)
+            browser.tabs.sendMessage(sender.tab.id, {
+                type: 'RDH_APPLY',
+                payload: highlights
+            })
         break
 
         case 'RDH_ADD':
