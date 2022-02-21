@@ -20,7 +20,14 @@ function RdPrompt(x, y, placeholder, defaultValue='', callback){
                     padding: 10px;
                 }
             </style>
-        </head><body><textarea type="text" autoFocus placeholder="${placeholder}"></textarea></body></html>
+        </head><body>
+            <textarea 
+                type="text" 
+                autoFocus 
+                maxlength="5000"
+                placeholder="${placeholder}">
+            </textarea>
+        </body></html>
     `
 
     function submit(e) {
@@ -483,7 +490,8 @@ class RdHighlight {
     }
 
     /* Test */
-    test(text) {
+    test(text='') {
+        if (text.length > 10000) return false
         const nodes = this._getTextNodes(this._container)
         const candidates = this._getCanditates(nodes, text)
         return candidates.size > 0
@@ -731,7 +739,7 @@ class RdHighlight {
             //otherwise start node can be invalid
             if (
                 carret &&
-                node.textContent.includes(source.substring(0, carret+1).trim())
+                node.textContent.replace(/ /gm, ' ').includes(source.substring(0, carret+1).trim())
             ) {
                 carret = 0
                 candidates.clear()
@@ -748,7 +756,7 @@ class RdHighlight {
                 const phrase = source.substring(carret-matches, carret+1)
 
                 //phrase included
-                if (node.textContent.includes(phrase)){
+                if (node.textContent.replace(/ /gm, ' ').includes(phrase)){
                     matches++
                     carret++
                     candidates.set(node, phrase)
