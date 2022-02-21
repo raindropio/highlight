@@ -228,6 +228,7 @@ class RdTooltip {
                 box-shadow: none !important;
                 animation: none !important;
                 transition: opacity .15s ease-in-out !important;
+                will-change: opacity;
                 border: 0 !important;
                 padding: 0 !important;
                 backdrop-filter: blur(20px) !important;
@@ -270,7 +271,8 @@ class RdTooltip {
                 flex-wrap: wrap; !important;
                 max-height: 32px !important;
                 transition: max-height .15s ease-in !important;
-                transition-delay: .25s !important;
+                transition-delay: .1s !important;
+                will-change: max-height;
                 overflow: hidden !important;
             }
 
@@ -294,6 +296,7 @@ class RdTooltip {
                 align-items: center !important;
                 justify-content: center !important;
                 transition: background .1s linear, color .1s linear !important;
+                will-change: background, color;
                 filter: none !important;
                 position: relative !important;
             }
@@ -571,7 +574,7 @@ class RdHighlight {
             //note icon for last
             if (i == candidates.size-1 && note)
                 mark.insertAdjacentHTML('beforeend', `<svg class="${this._classNoteIcon}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
-                    <path d="M8 0a2 2 0 0 1 2 2v8L6 8H2a2 2 0 0 1-2-2V2C0 .9.9 0 2 0h6Zm0 1H2a1 1 0 0 0-1 .9V6c0 .5.4 1 .9 1h4.3L9 8.4V2c0-.5-.4-1-.9-1H8Z"/>
+                    <path d="M8 0a2 2 0 0 1 2 2v8L6 8H2a2 2 0 0 1-2-2V2C0 .9.9 0 2 0h6ZM2 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm3 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm3 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/>
                 </svg>`)
 
             //nav
@@ -803,7 +806,10 @@ let rdhEmbed = {
 }
 
 //extension inject script
-if ((typeof chrome == 'object' && chrome.runtime) || (typeof browser == 'object' && browser.runtime)) {
+if (
+    (typeof chrome == 'object' && chrome.runtime && chrome.runtime.onMessage) || 
+    (typeof browser == 'object' && browser.runtime && browser.runtime.onMessage)
+) {
     const browser = window.browser || window.chrome
     rdhEmbed.enabled = true
 
