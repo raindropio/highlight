@@ -520,7 +520,7 @@ class RdHighlight {
 
         const selection = this._window.getSelection()
         if (!selection.rangeCount) return
-        const text = selection.getRangeAt(0).toString().trim()
+        const text = selection.toString().trim()
 
         if (!this.test(text)) {
             alert('⚠️ Unfortunately we can\'t add this text')
