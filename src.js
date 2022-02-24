@@ -33,6 +33,7 @@ function RdPrompt(x, y, placeholder, defaultValue='', callback){
     function submit(e) {
         e.preventDefault()
         e.stopPropagation()
+        if (p.closed) return
         callback(textarea.value)
         p.close()
     }
@@ -621,10 +622,11 @@ class RdHighlight {
         const note = mark.getAttribute('title') || ''
 
         RdPrompt(x, y, 'Note...', note, updated=>{
-            this.onUpdate({
-                _id: this._activeMarkId,
-                note: updated
-            })
+            if (note != updated)
+                this.onUpdate({
+                    _id: this._activeMarkId,
+                    note: updated
+                })
         })
         this._tooltip.hide()
     }
