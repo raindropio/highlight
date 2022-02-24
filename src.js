@@ -481,7 +481,7 @@ class RdHighlight {
         if (Array.isArray(highlights))
             for(const highlight of highlights)
                 this.mark(
-                    this._getCanditates(
+                    this._getRanges(
                         this._getTextNodes(this._container),
                         highlight.text
                     ),
@@ -493,8 +493,8 @@ class RdHighlight {
     test(text='') {
         if (text.length > 10000) return false
         const nodes = this._getTextNodes(this._container)
-        const candidates = this._getCanditates(nodes, text)
-        return candidates.size > 0
+        const ranges = this._getRanges(nodes, text)
+        return ranges.length > 0
     }
 
     /* Clean up all existing mark's */
@@ -548,24 +548,8 @@ class RdHighlight {
     }
 
     /* Wrap all canditates in <mark> tag */
-    mark(candidates, { _id, color, note }) {
-        let i = 0
-        
-        for(const [node, phrase] of candidates){
-            //create text range to be highlighted
-            var range = new Range()
-            let start = 0
-            let end = node.textContent.length
-
-            //first or last node
-            if (i == 0 || i == candidates.size-1) {
-                start = Math.max(node.textContent.indexOf(phrase), 0)
-                end = start + phrase.length
-            }
-
-            range.setStart(node, start)
-            range.setEnd(node, end)
-
+    mark(ranges, { _id, color, note }) {        
+        ranges.forEach((range, index)=>{
             //create mark tag
             const mark = this._document.createElement('mark')
             mark.setAttribute(this._attrId, _id)
@@ -580,13 +564,13 @@ class RdHighlight {
             range.surroundContents(mark)
 
             //note icon for last
-            if (i == candidates.size-1 && note)
+            if (index == ranges.length-1 && note)
                 mark.insertAdjacentHTML('beforeend', `<svg class="${this._classNoteIcon}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
                     <path d="M8 0a2 2 0 0 1 2 2v8L6 8H2a2 2 0 0 1-2-2V2C0 .9.9 0 2 0h6ZM2 3a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm3 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm3 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/>
                 </svg>`)
 
             //nav
-            if (this.nav && i == 0){
+            if (this.nav && index == 0){
                 const nav = this._document.createElement('a')
                 nav.className = this._classNav
                 nav.setAttribute(this._attrId, _id)                    
@@ -601,9 +585,7 @@ class RdHighlight {
 
             //free up memory
             range.detach()
-
-            i++
-        }
+        })
     }
 
     /* Mark mouse event listener */
@@ -683,6 +665,7 @@ class RdHighlight {
             mark[${this._attrId}] {
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.7) 0, rgba(255,255,255,.7) 100%) !important;
                 color: black !important;
+                -webkit-text-fill-color: black !important;
                 cursor: pointer !important;
             }
             .${this._classNoteIcon} {
@@ -727,58 +710,55 @@ class RdHighlight {
     }
 
     /* Find text nodes that match source text with match phrase */
-    /* -> Map<node:phrase> */
-    _getCanditates(nodes, source) {
-        let candidates = new Map()
-        let carret = 0
-
-        for(const node of nodes){
-            let matches = 0
-
-            //clear candidates if current node includes full phrase
-            //otherwise start node can be invalid
-            if (
-                carret &&
-                node.textContent.replace(/ /gm, ' ').includes(source.substring(0, carret+1).trim())
-            ) {
-                carret = 0
-                candidates.clear()
+    /* -> [Range] */
+    _getRanges(nodes, source) {
+        const sc = source.replace(/\s+/g, '')
+        
+        let merged = ''
+        let pos = [] //[merged_char_pos: [node, char_pos]]
+        for(var node of nodes) {
+            //collect positions of each char
+            for(const c in node.textContent) {
+                const char = node.textContent[c]
+                if (char.trim()) {
+                    pos[merged.length] = [node, parseInt(c)]
+                    merged+=char
+                }
             }
-
-            do {
-                //ignore any whitespace
-                if (!source[carret].trim()) {
-                    matches++
-                    carret++
-                    continue
-                }
-
-                const phrase = source.substring(carret-matches, carret+1)
-
-                //phrase included
-                if (node.textContent.replace(/ /gm, ' ').includes(phrase)){
-                    matches++
-                    carret++
-                    candidates.set(node, phrase)
-                }
-                //not found
-                else {
-                    if (
-                        !matches &&
-                        carret < source.length
-                    ) {
-                        carret = 0
-                        candidates.clear()
-                    }
-                    break
-                }
-            } while (carret < source.length)
-
-            if (carret >= source.length)
-                break
+        
+            //check maybe match is already collected? get starting index
+            const startIndex = merged.indexOf(sc)
+            if (startIndex == -1) continue
+        
+            const matches = pos.slice(startIndex, startIndex + sc.length)
+        
+            //make candidates list with start end offset pos
+            let candidates = new Map() //<node:[start,end]>
+            matches.forEach((match, matchIndex)=>{
+                let offset = candidates.get(match[0])||[-1, -1]
+                //start offset
+                if (offset[0]==-1)
+                    offset[0] = match[1]
+                //actual end offset
+                if (matchIndex == matches.length-1)
+                    offset[1] = match[1] + 1
+                //default end offset
+                else if (offset[1]==-1)
+                    offset[1] = match[0].textContent.length
+                candidates.set(match[0], offset)
+            })
+        
+            //convert canditates to ranges
+            return Array.from(candidates)
+                .map(candidate=>{
+                    const range = new Range()
+                    range.setStart(candidate[0], candidate[1][0])
+                    range.setEnd(candidate[0], candidate[1][1])
+                    return range
+                })
         }
 
-        return candidates
+        return []
     }
 
     /* Find all text nodes only */
@@ -795,8 +775,7 @@ class RdHighlight {
                         textNodes.push(...this._getTextNodes(child)); 
                     break
                 case 3: //text node
-                    if (child.textContent.trim())
-                        textNodes.push(child)
+                    textNodes.push(child)
                     break
             }
         return textNodes
