@@ -99,7 +99,7 @@ class RdTooltip {
         //position
         let left = x
         let top = y
-        if (this._parent._window.outerWidth <= left + 80) left = left - 80
+        if (left + 110 >= this._parent._window.innerWidth) left = this._parent._window.innerWidth - 110
         if (this._parent._window.scrollY > top) top = this._parent._window.scrollY
         this._menu.setAttribute('style', `left: ${left}px !important; top: ${top}px !important;`)
 
@@ -492,7 +492,7 @@ class RdHighlight {
 
     /* Test */
     test(text='') {
-        if (text.length > 10000) return false
+        if (text.length > 5000) return false
         const nodes = this._getTextNodes(this._container)
         const ranges = this._getRanges(nodes, text)
         return ranges.length > 0
@@ -697,7 +697,7 @@ class RdHighlight {
                 display: block !important;
                 width: 10px !important;
                 height: 10px !important;
-                border-radius: 4px !important;
+                border-radius: 10px !important;
                 box-shadow: 0 0 0 0.5px ButtonShadow, 0 5px 30px rgb(0 0 0 / 30%) !important;
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.2) 0, rgba(255,255,255,.2) 100%) !important;
             }
@@ -722,7 +722,7 @@ class RdHighlight {
             //collect positions of each char
             for(const c in node.textContent) {
                 const char = node.textContent[c]
-                if (char.trim()) {
+                if (typeof char == 'string' && char.trim()) {
                     pos[merged.length] = [node, parseInt(c)]
                     merged+=char
                 }
