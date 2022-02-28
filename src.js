@@ -284,7 +284,7 @@ class RdTooltip {
                 overflow: hidden !important;
             }
 
-            .${this._classMenu} > li:hover:not(:active) {
+            .${this._classMenu} > li:hover {
                 max-height: ${this._colors.length * 32}px !important;
             }
 
