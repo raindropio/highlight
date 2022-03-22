@@ -1,4 +1,11 @@
 function RdPrompt(x, y, placeholder, defaultValue='', callback){
+    //fallback to usual prompt in firefox extension
+    if (typeof browser == 'object' && 
+        'MozAppearance' in document.documentElement.style){
+        callback(prompt(placeholder, defaultValue))
+        return
+    }
+    
     const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
     const p = window.open('', 'prompt', `popup,frame=false,width=300,height=150,left=${x||0},top=${y||0}`)
     p.document.documentElement.innerHTML = `
@@ -799,20 +806,20 @@ if (
     (typeof chrome == 'object' && chrome.runtime && chrome.runtime.onMessage) || 
     (typeof browser == 'object' && browser.runtime && browser.runtime.onMessage)
 ) {
-    const browser = window.browser || window.chrome
+    const { runtime } = (typeof browser == 'object' ? browser : chrome)
     rdhEmbed.enabled = true
 
     rdhEmbed.send = (type, payload)=>
-        browser.runtime.sendMessage(null, { type, payload })
+        runtime.sendMessage(null, { type, payload })
 
     const onMessage = ({ type, payload }, sender) => {
-        if (sender.id != browser.runtime.id) return //only messages from bg script of current extension allowed
+        if (sender.id != runtime.id) return //only messages from bg script of current extension allowed
         if (typeof type !== 'string') return
         if (typeof payload != 'undefined' && typeof payload != 'object') return
         rdhEmbed.receive(type, payload)
     }
-    browser.runtime.onMessage.removeListener(onMessage)
-    browser.runtime.onMessage.addListener(onMessage)
+    runtime.onMessage.removeListener(onMessage)
+    runtime.onMessage.addListener(onMessage)
 }
 
 //electron
