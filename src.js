@@ -119,10 +119,10 @@ class RdTooltip {
         //center on mobile
         if (this._parent._isMobile) left = x - (this._menu.offsetWidth/2)
         //prevent showing outside of a screen
-        if (left < 0) left = 0
-        if (left + this._menu.offsetWidth >= this._parent._window.innerWidth) left = this._parent._window.innerWidth - this._menu.offsetWidth
-        if (top < 0) top = 0
-        if (this._parent._window.scrollY > top) top = this._parent._window.scrollY
+        if (left < 10) left = 10
+        if (left + this._menu.offsetWidth + 10 >= this._parent._window.innerWidth) left = this._parent._window.innerWidth - this._menu.offsetWidth - 10
+        if (top < 10) top = 10
+        if (this._parent._window.scrollY > top + 10) top = this._parent._window.scrollY - 10
         //apply position
         this._menu.setAttribute('style', `left: ${left}px !important; top: ${top}px !important;`)
 
@@ -282,7 +282,8 @@ class RdTooltip {
                         --r-menu-bg: black;
                         --r-menu-color: white;
                         --r-menu-active: rgba(255,255,255,.3);
-                        --r-menu-item-width: 38px;
+                        --r-menu-item-separator: rgba(255,255,255,.3);
+                        --r-menu-item-width: 48px;
                         --r-menu-item-height: 38px;
                         --r-menu-border-radius: 8px;
                     }
@@ -355,7 +356,8 @@ class RdTooltip {
                 appearance: none !important;
                 background: transparent !important;
                 border: 0 !important;
-                box-shadow: none !important;
+                border-radius: 0 !important;
+                box-shadow: 0.5px 0 0 var(--r-menu-item-separator) !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 display: flex !important;
