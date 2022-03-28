@@ -1,8 +1,11 @@
 function RdPrompt(x, y, placeholder, defaultValue='', callback){
-    //fallback to usual prompt in firefox extension
-    if (typeof browser == 'object' && 
-        'MozAppearance' in document.documentElement.style){
-        callback(prompt(placeholder, defaultValue))
+    //fallback to usual prompt
+    if (
+        (typeof browser == 'object' && 'MozAppearance' in document.documentElement.style) || //firefox extension
+        matchMedia('(pointer:coarse)').matches //mobile
+    ){
+        const returnValue = prompt(placeholder, defaultValue)
+        callback(returnValue === null ? defaultValue : returnValue) //ios send null if user tap cancel
         return
     }
     
@@ -96,8 +99,15 @@ class RdTooltip {
         this._windowResize = this._windowResize.bind(this)
 
         //events
-        this._parent._window.removeEventListener('mousedown', this._windowMouseDown)
-        this._parent._window.addEventListener('mousedown', this._windowMouseDown)
+        if (this._parent._isMobile){
+            this._parent._document.removeEventListener('touchstart', this._windowMouseDown)
+            this._parent._document.addEventListener('touchstart', this._windowMouseDown)
+            this._parent._document.removeEventListener('touchend', this._windowMouseUp)
+            this._parent._document.addEventListener('touchend', this._windowMouseUp)
+        } else {
+            this._parent._window.removeEventListener('mousedown', this._windowMouseDown)
+            this._parent._window.addEventListener('mousedown', this._windowMouseDown)
+        }
         this._parent._window.removeEventListener('resize', this._windowResize)
         this._parent._window.addEventListener('resize', this._windowResize)
     }
@@ -106,8 +116,14 @@ class RdTooltip {
         //position
         let left = x
         let top = y
-        if (left + 110 >= this._parent._window.innerWidth) left = this._parent._window.innerWidth - 110
+        //center on mobile
+        if (this._parent._isMobile) left = x - (this._menu.offsetWidth/2)
+        //prevent showing outside of a screen
+        if (left < 0) left = 0
+        if (left + this._menu.offsetWidth >= this._parent._window.innerWidth) left = this._parent._window.innerWidth - this._menu.offsetWidth
+        if (top < 0) top = 0
         if (this._parent._window.scrollY > top) top = this._parent._window.scrollY
+        //apply position
         this._menu.setAttribute('style', `left: ${left}px !important; top: ${top}px !important;`)
 
         //color active
@@ -190,7 +206,7 @@ class RdTooltip {
             </li>
             
             <button class="${this._classButtonNote}" title="Add note...">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M15 1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3v1.9a1 1 0 0 1-1.6.7L10.2 16H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3h11Zm0 1H4c-1 0-2 .8-2 1.9V13c0 1 .8 2 1.9 2h6.7l3.4 2.9V15h1c1 0 2-.8 2-1.9V4c0-1-.8-2-1.9-2H15Zm-5 3v3h3v1h-3v3H9V9H6V8h3V5h1Z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M15 1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3v1.9a1 1 0 0 1-1.6.7L10.2 16H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3h11Zm0 1H4c-1 0-2 .8-2 1.9V13c0 1 .8 2 1.9 2h6.7l3.4 2.9V15h1c1 0 2-.8 2-1.9V4c0-1-.8-2-1.9-2H15Z"/></svg>
             </button>
 
             <button class="${this._classButtonRemove}" title="Delete">
@@ -203,22 +219,22 @@ class RdTooltip {
         this._menu.querySelectorAll(`.${this._classButtonColor}`)
             .forEach(e=>{
                 this._colorClick = this._colorClick.bind(this)
-                e.removeEventListener('click', this._colorClick)
-                e.addEventListener('click', this._colorClick)
+                e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._colorClick)
+                e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._colorClick)
             })
 
         this._menu.querySelectorAll(`.${this._classButtonNote}`)
             .forEach(e=>{
                 this._noteClick = this._noteClick.bind(this)
-                e.removeEventListener('click', this._noteClick)
-                e.addEventListener('click', this._noteClick)
+                e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._noteClick)
+                e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._noteClick)
             })
 
         this._menu.querySelectorAll(`.${this._classButtonRemove}`)
             .forEach(e=>{
                 this._removeClick = this._removeClick.bind(this)
-                e.removeEventListener('click', this._removeClick)
-                e.addEventListener('click', this._removeClick)
+                e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._removeClick)
+                e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._removeClick)
             })
     }
 
@@ -230,6 +246,30 @@ class RdTooltip {
         const style = this._parent._document.createElement('style')
         style.id = this._idCss
         style.innerHTML = `
+            :root {
+                --r-menu-bg: Menu;
+                --r-menu-border: GrayText;
+                --r-menu-color: WindowText;
+
+                --r-menu-item-size: 32px;
+            }
+            /* safari Menu color is invalid, fix: */
+            @supports (-webkit-backdrop-filter: blur(0)) {
+                :root {
+                    --r-menu-bg: Window;
+                }
+            }
+            /* mobile always black */
+            @media (pointer: coarse) {
+                :root {
+                    --r-menu-bg: black;
+                    --r-menu-border: rgba(255,255,255,.3);
+                    --r-menu-color: white;
+
+                    --r-menu-item-size: 38px;
+                }
+            }
+
             .${this._classMenu} {
                 position: absolute !important;
                 display: flex !important;
@@ -249,24 +289,25 @@ class RdTooltip {
                 backdrop-filter: blur(20px) !important;
                 -webkit-backdrop-filter: blur(20px) !important;
             }
+
             .${this._classMenu}, .${this._classMenu} *, .${this._classMenu}:after {
-                border-radius: 5px !important;
+                border-radius: 7px !important;
+                margin: 0 !important;
             }
             .${this._classMenu}:after {
                 content: '' !important;
                 position: absolute !important;
                 left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important;
                 z-index: -1 !important;
-                background-color: Menu !important;
-                box-shadow: 0 0 0 0.5px GrayText, 0 5px 30px rgb(0 0 0 / 30%) !important;
+                background-color: var(--r-menu-bg) !important;
+                box-shadow: 0 0 0 0.5px var(--r-menu-border), 0 10px 50px rgb(0 0 0 / 25%) !important;
             }
             @supports (backdrop-filter: blur(20px)) {
-                .${this._classMenu}:after { opacity: .6 !important; }
+                .${this._classMenu}:after { opacity: .9 !important; }
             }
             @supports (-webkit-backdrop-filter: blur(20px)) {
                 .${this._classMenu}:after {
-                    opacity: .6 !important;
-                    background-color: Window !important;
+                    opacity: .9 !important;
                 }
             }
             .${this._classMenu}, .${this._classMenu} * {
@@ -282,25 +323,32 @@ class RdTooltip {
             /* Dropdown */
             .${this._classMenu} > li {
                 display: flex !important;
-                flex-direction: column !important;
-                flex-wrap: wrap; !important;
-                max-height: 32px !important;
-                transition: max-height .15s ease-in !important;
-                transition-delay: .1s !important;
-                will-change: max-height;
-                overflow: hidden !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
             }
 
-            .${this._classMenu} > li:hover {
-                max-height: ${this._colors.length * 32}px !important;
+            /* Dropdown grow down on desktop on hover */
+            @media (pointer: fine) {
+                .${this._classMenu} > li {
+                    flex-direction: column !important;
+                    max-height: var(--r-menu-item-size) !important;
+                    transition: max-height .15s ease-in !important;
+                    transition-delay: .1s !important;
+                    will-change: max-height;
+                    overflow: hidden !important;
+                }
+                .${this._classMenu} > li:hover {
+                    max-height: ${this._colors.length * 32}px !important;
+                }
             }
 
             /* Buttons */
             .${this._classMenu} button {
+                flex-shrink: 0 !important;
                 cursor: pointer !important;
-                color: WindowText !important;
-                width: 32px !important;
-                height: 32px !important;
+                color: var(--r-menu-color) !important;
+                width: var(--r-menu-item-size) !important;
+                height: var(--r-menu-item-size) !important;
                 appearance: none !important;
                 background: transparent !important;
                 border: 0 !important;
@@ -342,8 +390,15 @@ class RdTooltip {
                 font-weight: 600 !important;
                 box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2), 0 0 0 0.5px rgba(0,0,0,.2), 0 3px 15px rgba(0,0,0,.2) !important;
             }
-            .${this._classMenu} button[data-active='true'] {
-                order: -1 !important;
+            @media (pointer: fine) {
+                .${this._classMenu} button[data-active='true'] {
+                    order: -1 !important;
+                }
+            }
+            @media (pointer: coarse) {
+                .${this._classMenu} button[data-active='true'] {
+                    display: none !important;
+                }
             }
 
             .${this._classMenu} * {
@@ -371,6 +426,7 @@ class RdTooltip {
 class RdSelection {
     _parent = null //RdHighlight
     _tooltip = null
+    _touching = false
 
     constructor(parent) {
         this._parent = parent
@@ -382,6 +438,9 @@ class RdSelection {
         //bind
         this.render = this.render.bind(this)
         this._onSelectionChange = this._onSelectionChange.bind(this)
+        this._onTouchStart = this._onTouchStart.bind(this)
+        this._onTouchEnd = this._onTouchEnd.bind(this)
+        this._onSelectionChange = this._onSelectionChange.bind(this)
 
         //add event listeners
         this._parent._document.removeEventListener('selectionchange', this._onSelectionChange)
@@ -390,6 +449,13 @@ class RdSelection {
         this._parent._window.addEventListener('focus', this.render)
         this._parent._window.removeEventListener('blur', this.render)
         this._parent._window.addEventListener('blur', this.render)
+
+        if (this._parent._isMobile) {
+            this._parent._document.removeEventListener('touchstart', this._onTouchStart)
+            this._parent._document.addEventListener('touchstart', this._onTouchStart)
+            this._parent._document.removeEventListener('touchend', this._onTouchEnd)
+            this._parent._document.addEventListener('touchend', this._onTouchEnd)
+        }
 
         //try
         this._onSelectionChange()
@@ -411,16 +477,34 @@ class RdSelection {
 
         //position menu
         const selection = this._parent._window.getSelection()
-        const { x, y, width } = selection.getRangeAt(0).getBoundingClientRect()
+        const { x, y, width, height } = selection.getRangeAt(0).getBoundingClientRect()
         let left = this._parent._window.scrollX+x+width
         let top = this._parent._window.scrollY+y-32
+
+        //mobile
+        if (this._parent._isMobile){
+            left = this._parent._window.scrollX+x+(width/2)
+            top = this._parent._window.scrollY+y+height+10
+        }
+
         this._tooltip.show(left, top)
     }
 
     /* User changed document selection event */
     _onSelectionChange() {
         clearTimeout(this._selectTimeout)
+        if (this._touching) return
         this._selectTimeout = setTimeout(this.render, this.have() ? 200 : 0)
+    }
+
+    /* Mobile specific */
+    _onTouchStart() {
+        this._touching = true
+    }
+
+    _onTouchEnd() {
+        this._touching = false
+        this.render()
     }
 }
 
@@ -439,6 +523,7 @@ class RdHighlight {
     _container = null
     _window = null
     _document = null
+    _isMobile = matchMedia('(pointer:coarse)').matches
 
     _selection = null
     _tooltip = null
@@ -519,7 +604,11 @@ class RdHighlight {
 
         const mark = this._container.querySelector(`mark[${this._attrId}="${String(id)}"]`)
         if (mark)
-            mark.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            mark.scrollIntoView(
+                !(navigator.vendor||'').includes('Apple') ?
+                    { behavior: 'smooth', block: 'center' } :
+                    {}
+            )
     }
 
     /* Add selection */
@@ -605,7 +694,7 @@ class RdHighlight {
 
         const mark = e.currentTarget
         const id = mark.getAttribute(this._attrId)
-        const color = (getComputedStyle(mark).getPropertyValue(this._cssColorVar) || '').trim()
+        const color = (getComputedStyle(mark).getPropertyValue(this._cssColorVar) || 'yellow').trim()
         const hasNote = mark.hasAttribute('title')
 
         this._activeMarkId = id
