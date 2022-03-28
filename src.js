@@ -248,25 +248,44 @@ class RdTooltip {
         style.innerHTML = `
             :root {
                 --r-menu-bg: Menu;
-                --r-menu-border: GrayText;
                 --r-menu-color: WindowText;
-
-                --r-menu-item-size: 32px;
+                --r-menu-active: ButtonShadow;
+                --r-menu-item-width: 32px;
+                --r-menu-item-height: 32px;
+                --r-menu-border-radius: 6px;
             }
-            /* safari Menu color is invalid, fix: */
+            /* safari do not support Menu color */
             @supports (-webkit-backdrop-filter: blur(0)) {
                 :root {
                     --r-menu-bg: Window;
                 }
             }
-            /* mobile always black */
-            @media (pointer: coarse) {
-                :root {
-                    --r-menu-bg: black;
-                    --r-menu-border: rgba(255,255,255,.3);
-                    --r-menu-color: white;
 
-                    --r-menu-item-size: 38px;
+            /* mobile */
+            @media (pointer: coarse) {
+                /* contrast bg */
+                :root {
+                    --r-menu-bg: Window;
+                }
+
+                /* android */
+                :root {
+                    --r-menu-item-width: 44px;
+                    --r-menu-item-height: 48px;
+                    --r-menu-border-radius: 24px;
+                }
+
+                /* ios */
+                @supports (-webkit-backdrop-filter: blur(0)) {
+                    :root {
+                        /* ios safari always black */
+                        --r-menu-bg: black;
+                        --r-menu-color: white;
+                        --r-menu-active: rgba(255,255,255,.3);
+                        --r-menu-item-width: 38px;
+                        --r-menu-item-height: 38px;
+                        --r-menu-border-radius: 8px;
+                    }
                 }
             }
 
@@ -275,40 +294,22 @@ class RdTooltip {
                 display: flex !important;
                 
                 z-index: 99999999 !important;
-                background-color: transparent !important;
+                background-color: var(--r-menu-bg) !important;
+                box-shadow: 0 0 0 .5px rgba(0,0,0,.1), 0 .5px 0 rgba(0,0,0,.1), 0 3px 6px rgba(0,0,0,.1), 0 6px 30px rgba(0,0,0,.1) !important;
                 margin: 4px !important;
                 width: auto !important;
                 height: auto !important;
                 left: 0 !important; top: 0 !important;
-                box-shadow: none !important;
                 animation: none !important;
                 transition: opacity .15s ease-in-out !important;
                 will-change: opacity;
                 border: 0 !important;
                 padding: 0 !important;
-                backdrop-filter: blur(20px) !important;
-                -webkit-backdrop-filter: blur(20px) !important;
+                border-radius: var(--r-menu-border-radius) !important;
+                overflow: hidden !important;
             }
-
-            .${this._classMenu}, .${this._classMenu} *, .${this._classMenu}:after {
-                border-radius: 7px !important;
+            .${this._classMenu}, .${this._classMenu} * {
                 margin: 0 !important;
-            }
-            .${this._classMenu}:after {
-                content: '' !important;
-                position: absolute !important;
-                left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important;
-                z-index: -1 !important;
-                background-color: var(--r-menu-bg) !important;
-                box-shadow: 0 0 0 0.5px var(--r-menu-border), 0 10px 50px rgb(0 0 0 / 25%) !important;
-            }
-            @supports (backdrop-filter: blur(20px)) {
-                .${this._classMenu}:after { opacity: .9 !important; }
-            }
-            @supports (-webkit-backdrop-filter: blur(20px)) {
-                .${this._classMenu}:after {
-                    opacity: .9 !important;
-                }
             }
             .${this._classMenu}, .${this._classMenu} * {
                 box-sizing: border-box !important;
@@ -330,25 +331,27 @@ class RdTooltip {
             /* Dropdown grow down on desktop on hover */
             @media (pointer: fine) {
                 .${this._classMenu} > li {
-                    flex-direction: column !important;
-                    max-height: var(--r-menu-item-size) !important;
-                    transition: max-height .15s ease-in !important;
-                    transition-delay: .1s !important;
+                    display: block !important;
+                    max-height: var(--r-menu-item-height) !important;
+                    transition: max-height .2s ease-in-out !important;
+                    transition-delay: .25s !important;
                     will-change: max-height;
                     overflow: hidden !important;
                 }
                 .${this._classMenu} > li:hover {
+                    transition-delay: .15s !important;
                     max-height: ${this._colors.length * 32}px !important;
                 }
             }
 
             /* Buttons */
             .${this._classMenu} button {
+                -webkit-tap-highlight-color: transparent !important;
                 flex-shrink: 0 !important;
-                cursor: pointer !important;
+                cursor: default !important;
                 color: var(--r-menu-color) !important;
-                width: var(--r-menu-item-size) !important;
-                height: var(--r-menu-item-size) !important;
+                width: var(--r-menu-item-width) !important;
+                height: var(--r-menu-item-height) !important;
                 appearance: none !important;
                 background: transparent !important;
                 border: 0 !important;
@@ -358,37 +361,36 @@ class RdTooltip {
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-                transition: background .1s linear, color .1s linear !important;
+                transition: none !important;
                 will-change: background, color;
                 filter: none !important;
                 position: relative !important;
             }
             .${this._classMenu} button:hover {
-                background: rgba(100,100,100,.3) !important;
+                background: rgba(150,150,150,.2) !important;
             }
             .${this._classMenu} button:active {
-                filter: brightness(50%) !important;
+                background: var(--r-menu-active) !important;
             }
             .${this._classMenu} button[hidden='true'] {
                 display: none !important;
             }
             .${this._classMenu} button[data-badge]:before {
-                content: attr(data-badge) !important;
-                width: 16px !important;
-                height: 16px !important;
-                border-radius: 14px !important;
+                content: "" !important;
+                width: 12px !important;
+                height: 12px !important;
+                border-radius: 6px !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
                 background: red !important;
                 color: white !important;
                 position: absolute !important;
-                top: -3px !important;
-                right: -3px !important;
+                top: 3px !important;
+                right: 2px !important;
                 font-size: 11px !important;
                 line-height: 11px !important;
                 font-weight: 600 !important;
-                box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2), 0 0 0 0.5px rgba(0,0,0,.2), 0 3px 15px rgba(0,0,0,.2) !important;
             }
             @media (pointer: fine) {
                 .${this._classMenu} button[data-active='true'] {
@@ -412,8 +414,10 @@ class RdTooltip {
                 width: 18px !important;
                 height: 18px !important;
                 border-radius: 18px !important;
-                box-shadow: inset 0 0 0 0.5px rgba(0,0,0,.4) !important;
-                background-image: linear-gradient(to bottom, rgba(255,255,255,.5) 0, rgba(255,255,255,.4) 100%) !important;
+                background-image: linear-gradient(to bottom, rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 100%) !important;
+            }
+            button[${this._attrColor}=yellow]:before {
+                box-shadow: 0 0 0 0.5px rgba(0,0,0,.3) !important;
             }
             ${this._colors.map(color=>`
                 .${this._classMenu} button[${this._attrColor}=${color}]:before { background-color: ${color} !important; }
@@ -426,7 +430,6 @@ class RdTooltip {
 class RdSelection {
     _parent = null //RdHighlight
     _tooltip = null
-    _touching = false
 
     constructor(parent) {
         this._parent = parent
@@ -438,9 +441,6 @@ class RdSelection {
         //bind
         this.render = this.render.bind(this)
         this._onSelectionChange = this._onSelectionChange.bind(this)
-        this._onTouchStart = this._onTouchStart.bind(this)
-        this._onTouchEnd = this._onTouchEnd.bind(this)
-        this._onSelectionChange = this._onSelectionChange.bind(this)
 
         //add event listeners
         this._parent._document.removeEventListener('selectionchange', this._onSelectionChange)
@@ -449,13 +449,6 @@ class RdSelection {
         this._parent._window.addEventListener('focus', this.render)
         this._parent._window.removeEventListener('blur', this.render)
         this._parent._window.addEventListener('blur', this.render)
-
-        if (this._parent._isMobile) {
-            this._parent._document.removeEventListener('touchstart', this._onTouchStart)
-            this._parent._document.addEventListener('touchstart', this._onTouchStart)
-            this._parent._document.removeEventListener('touchend', this._onTouchEnd)
-            this._parent._document.addEventListener('touchend', this._onTouchEnd)
-        }
 
         //try
         this._onSelectionChange()
@@ -484,7 +477,7 @@ class RdSelection {
         //mobile
         if (this._parent._isMobile){
             left = this._parent._window.scrollX+x+(width/2)
-            top = this._parent._window.scrollY+y+height+10
+            top = this._parent._window.scrollY+y+height+16
         }
 
         this._tooltip.show(left, top)
@@ -493,18 +486,8 @@ class RdSelection {
     /* User changed document selection event */
     _onSelectionChange() {
         clearTimeout(this._selectTimeout)
-        if (this._touching) return
-        this._selectTimeout = setTimeout(this.render, this.have() ? 200 : 0)
-    }
-
-    /* Mobile specific */
-    _onTouchStart() {
-        this._touching = true
-    }
-
-    _onTouchEnd() {
-        this._touching = false
-        this.render()
+        this._tooltip.hide()
+        this._selectTimeout = setTimeout(this.render, this.have() ? (this._parent._isMobile ? 400 : 200) : 0)
     }
 }
 
@@ -698,7 +681,7 @@ class RdHighlight {
         const hasNote = mark.hasAttribute('title')
 
         this._activeMarkId = id
-        this._tooltip.show(e.pageX, e.pageY, color, hasNote, true)
+        this._tooltip.show(e.pageX+5, e.pageY+5, color, hasNote, true)
     }
 
     _markColorClick(color) {

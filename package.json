@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "local:iframe": "serve",
     "build": "babel src.js --out-file dist/embed.js"
   },
   "devDependencies": {
@@ -11,6 +12,7 @@
     "@babel/core": "^7.17.2",
     "@babel/preset-env": "^7.16.11",
     "babel-plugin-remove-template-literals-whitespace": "^1.0.4",
-    "babel-preset-minify": "^0.5.1"
+    "babel-preset-minify": "^0.5.1",
+    "serve": "^13.0.2"
   }
 }
