@@ -1,7 +1,8 @@
 function RdPrompt(x, y, placeholder, defaultValue='', callback){
     //fallback to usual prompt
     if (
-        (typeof browser == 'object' && 'MozAppearance' in document.documentElement.style) //firefox extension
+        (typeof browser == 'object' && 'MozAppearance' in document.documentElement.style) || //firefox extension
+        'ReactNativeWebView' in window //react native
     ){
         const returnValue = prompt(placeholder, defaultValue)
         callback(returnValue === null ? defaultValue : returnValue) //ios send null if user tap cancel
@@ -419,7 +420,7 @@ class RdTooltip {
             }
 
             .${this._classMenu} * {
-                fill: currentColor !important;
+                fill: var(--r-menu-color) !important;
             }
 
             /* Color */
@@ -738,7 +739,9 @@ class RdHighlight {
         if (!this._activeMarkId) return
 
         const mark = this._container.querySelector(`[${this._attrId}="${this._activeMarkId}"]`)
-        const confirmed = mark.hasAttribute('title') ? confirm('Remove highlight?') : true
+        let confirmed = true
+        if (mark.hasAttribute('title'))
+            try { confirmed = confirm('Remove highlight?') } catch(e) {}
         if (!confirmed) return
 
         this.onRemove({ _id: this._activeMarkId })
@@ -928,6 +931,16 @@ else if (typeof require == 'function') {
     const onMessage = (_, data) => rdhEmbed.receive(data.type, data.payload)
     ipcRenderer.removeListener('RDH', onMessage)
     ipcRenderer.on('RDH', onMessage)
+}
+
+//react native
+else if ('ReactNativeWebView' in window) {
+    rdhEmbed.enabled = true
+
+    rdhEmbed.send = (type, payload)=>
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type, payload }))
+
+    window.ReactNativeWebViewSendMessage = (data)=>rdhEmbed.receive(data.type, data.payload)
 }
 
 //iframe

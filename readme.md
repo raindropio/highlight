@@ -50,3 +50,19 @@ Example in `test/electron` folder
 
     webview.send('RDH', { type: 'some', payload: {} })
 ```
+
+### Use in React Native
+```js
+    <WebView 
+        ref={ref}
+        onMessage={({ nativeEvent })=>{
+            const data = JSON.parse(nativeEvent.data)
+            if (typeof data != 'object' || typeof data.type != 'string') return
+            const { type, payload } = data
+        }} />
+
+    import js from './highlight.string.js'
+    ref.current.injectJavaScript(`${js}; true`)
+
+    ref.current.injectJavaScript(`window.ReactNativeWebViewSendMessage(${JSON.stringify({ type: 'some', payload: {} })}); true`)
+```

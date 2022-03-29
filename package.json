@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "local:iframe": "serve",
-    "build": "babel src.js --out-file dist/embed.js"
+    "build": "babel src.js --out-file dist/highlight.js && node dist-string.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.0",
