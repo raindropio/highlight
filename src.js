@@ -1,8 +1,7 @@
 function RdPrompt(x, y, placeholder, defaultValue='', callback){
     //fallback to usual prompt
     if (
-        (typeof browser == 'object' && 'MozAppearance' in document.documentElement.style) || //firefox extension
-        matchMedia('(pointer:coarse)').matches //mobile
+        (typeof browser == 'object' && 'MozAppearance' in document.documentElement.style) //firefox extension
     ){
         const returnValue = prompt(placeholder, defaultValue)
         callback(returnValue === null ? defaultValue : returnValue) //ios send null if user tap cancel
@@ -13,21 +12,27 @@ function RdPrompt(x, y, placeholder, defaultValue='', callback){
     const p = window.open('', 'prompt', `popup,frame=false,width=300,height=150,left=${x||0},top=${y||0}`)
     p.document.documentElement.innerHTML = `
         <html><head>
-            <title>${isDarkMode ? '🗨' : '💬'}</title><meta name="color-scheme" content="light dark">
+            <title>${isDarkMode ? '🗨' : '💬'}</title>
+            <meta name="color-scheme" content="light dark">
+            <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,maximum-scale=1,user-scalable=0"/>
             <style>
                 html, body, textarea {
+                    -webkit-text-size-adjust: 100%;
                     box-sizing: border-box;
                     display: block;
-                    width: 100vw;height: 100vh;
+                    width: 100vw;height: 100vh;height: -webkit-fill-available;
                     margin: 0;outline: none;border: 0;
                     font: 14px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
                     resize: none;
                 }
-                @supports (-webkit-backdrop-filter: blur(1px)) {
-                    textarea { background: Window; }
-                }
                 textarea {
                     padding: 10px;
+                }
+                @media (pointer: coarse) {
+                    textarea {
+                        font-size: 24px;
+                        padding: 20px;
+                    }
                 }
             </style>
         </head><body>
@@ -51,7 +56,6 @@ function RdPrompt(x, y, placeholder, defaultValue='', callback){
     const textarea = p.document.querySelector('textarea')
     textarea.value = defaultValue
     textarea.setSelectionRange(0, textarea.value.length)
-    textarea.addEventListener('blur', submit)
     textarea.addEventListener('keydown', e=>{
         switch(e.code) {
             case 'Enter':
@@ -66,7 +70,12 @@ function RdPrompt(x, y, placeholder, defaultValue='', callback){
             break
         }
     })
-    p.addEventListener('blur', submit)
+
+    setTimeout(() => {
+        textarea.addEventListener('blur', submit)
+        if (p.document.activeElement != textarea)
+            submit()
+    }, 100)
 }
 
 class RdTooltip {
@@ -119,10 +128,12 @@ class RdTooltip {
         //center on mobile
         if (this._parent._isMobile) left = x - (this._menu.offsetWidth/2)
         //prevent showing outside of a screen
-        if (left < 10) left = 10
-        if (left + this._menu.offsetWidth + 10 >= this._parent._window.innerWidth) left = this._parent._window.innerWidth - this._menu.offsetWidth - 10
-        if (top < 10) top = 10
-        if (this._parent._window.scrollY > top + 10) top = this._parent._window.scrollY - 10
+        let minX = this._parent._window.scrollX + 10
+        let maxX = minX + this._parent._window.innerWidth - this._menu.offsetWidth - 10
+        if (left < minX) left = minX; if (left > maxX) left = maxX
+        let minY = this._parent._window.scrollY + 10
+        let maxY = minY + this._parent._window.innerHeight - this._menu.offsetHeight - 10
+        if (top < minY) top = minY; if (top > maxY) top = maxY
         //apply position
         this._menu.setAttribute('style', `left: ${left}px !important; top: ${top}px !important;`)
 
@@ -481,7 +492,7 @@ class RdSelection {
         //mobile
         if (this._parent._isMobile){
             left = this._parent._window.scrollX+x+(width/2)
-            top = this._parent._window.scrollY+y+height+16
+            top = this._parent._window.scrollY+y+height+(y > 80 ? 16 : 80)
         }
 
         this._tooltip.show(left, top)
@@ -577,6 +588,17 @@ class RdHighlight {
         return ranges.length > 0
     }
 
+    getSelectionText(validate=false) {
+        const selection = this._window.getSelection()
+        if (!selection.rangeCount) return
+        const text = selection.toString().trim()
+        if (validate && !this.test(text)) {
+            alert('Unfortunately we can\'t add this text')
+            return
+        }
+        return text
+    }
+
     /* Clean up all existing mark's */
     reset() {
         this._container.querySelectorAll(`mark[${this._attrId}]`)
@@ -602,28 +624,24 @@ class RdHighlight {
     addSelection(details={}) {
         if (typeof this.onAdd != 'function') return
 
-        const selection = this._window.getSelection()
-        if (!selection.rangeCount) return
-        const text = selection.toString().trim()
+        const text = this.getSelectionText(true)
+        if (!text) return
 
-        if (!this.test(text)) {
-            alert('Unfortunately we can\'t add this text')
-            return
-        }
-        
         this.onAdd({ ...details, text })
-        selection.removeAllRanges()
+        this._window.getSelection().removeAllRanges()
     }
 
     noteSelection(x, y) {
         if (!this.pro)
             return alert(`Annotations available in Raindrop.io Pro`)
 
+        const text = this.getSelectionText(true)
+        if (!text) return
+
         RdPrompt(x, y, 'Add note...', '', note=>{
-            if (note.trim())
-            this.addSelection({
-                note
-            })
+            if (!(note||'').trim()) return
+            this.onAdd({ note, text })
+            this._window.getSelection().removeAllRanges()
         })
     }
 

@@ -2,6 +2,9 @@
 <head>
   <!-- <meta name="color-scheme" content="light dark"> -->
   <script src="../../src.js"></script>
+  <style>
+    body { width: 120% }
+  </style>
 </head>
 <body>
   <article class="main-page-content" lang="en-US"><h1>Map</h1><div><p>
@@ -9,7 +12,28 @@
     order of the keys. Any value (both objects and
     <a href="/en-US/docs/Glossary/Primitive">primitive values</a>) may be used as
     either a key or a value.
-  </p><iframe class="interactive" height="692" src="https://interactive-examples.mdn.mozilla.net/pages/js/map.html" title="MDN Web Docs Interactive Example" loading="lazy"></iframe></div><h2 id="description"><a href="#description" title="Permalink to Description">Description</a></h2><div><p>
+  </p>
+  
+  <p>
+    One thing that comes up often is how they relate to scrollbars. For example, if an element is sized to 100vw and stretches edge-to-edge, that’s fine so long as the page doesn’t have a vertical scrollbar. If it does have a vertical scrollbar, then 100vw is too wide, and the presence of that vertical scrollbar triggers a horizontal scrollbar because viewport units don’t have an elegant/optional way of handling that. So you might be hiding overflow on the body when you otherwise wouldn’t need to, for example. (Demo)
+  </p>
+
+  <p>
+    Another scenario involves mobile browsers. You might use viewport units to help you position a fixed footer along the bottom of the screen. But then browser chrome might come up (e.g. navigation, keyboard, etc), and it may cover the footer, because the mobile browser doesn’t consider anything changed about the viewport size.
+  </p>
+
+  <p>
+    It’s useful to read the linked article’s comments as they go into further tests on this. Also useful to note that the style used here WILL change down the road, so as long as this is considered a “progressive enhancement” as Chris says then fine, but not if you’re relying on this feature.
+
+Personally I can’t wait for the day when we have a simple and reliable CSS fix for the 100vh issue in the vein of this one-liner down the road. The fact that it’s 2020 and we still don’t have a fix for this is ridiculous.
+  </p>
+
+  <p>
+    It would be better to get some real cross-browser solution for this someday, but I don’t see any issues using this as an improvement. It’s weird to use a vendor-prefixed property as a progressive enhancement, but hey, the world is weird.
+    It would be better to get some real cross-browser solution for this someday, but I don’t see any issues using this as an improvement. It’s weird to use a vendor-prefixed property as a progressive enhancement, but hey, the world is weird.
+  </p>
+  
+  <iframe class="interactive" height="692" src="https://interactive-examples.mdn.mozilla.net/pages/js/map.html" title="MDN Web Docs Interactive Example" loading="lazy"></iframe></div><h2 id="description"><a href="#description" title="Permalink to Description">Description</a></h2><div><p>
     A <code>Map</code> object iterates its elements in insertion order — a
     <a href="/en-US/docs/Web/JavaScript/Reference/Statements/for...of"><code>for...of</code></a> loop returns an
     array of <code>[key, value]</code> for each iteration.
