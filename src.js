@@ -199,13 +199,13 @@ class RdTooltip {
         this._menu.className = this._classMenu
         this._menu.setAttribute('hidden', 'true')
         this._menu.innerHTML = `
-            <li title="Highlight">
+            <li title="Add highlight to Raindrop.io">
                 ${this._colors.map(color=>`
                     <button class="${this._classButtonColor}" ${this._attrColor}="${color}"></button>
                 `).join('')}
             </li>
             
-            <button class="${this._classButtonNote}" title="Add note...">
+            <button class="${this._classButtonNote}" title="Add annotation to Raindrop.io">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M15 1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3v1.9a1 1 0 0 1-1.6.7L10.2 16H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3h11Zm0 1H4c-1 0-2 .8-2 1.9V13c0 1 .8 2 1.9 2h6.7l3.4 2.9V15h1c1 0 2-.8 2-1.9V4c0-1-.8-2-1.9-2H15Z"/></svg>
             </button>
 
@@ -247,17 +247,16 @@ class RdTooltip {
         style.id = this._idCss
         style.innerHTML = `
             :root {
-                --r-menu-bg: Menu;
-                --r-menu-color: WindowText;
-                --r-menu-active: ButtonShadow;
-                --r-menu-item-width: 32px;
+                --r-menu-bg: Canvas;
+                --r-menu-color: FieldText;
+                --r-menu-active: GrayText;
+                --r-menu-item-width: 34px;
                 --r-menu-item-height: 32px;
-                --r-menu-border-radius: 6px;
+                --r-menu-border-radius: 8px;
             }
-            /* safari do not support Menu color */
-            @supports (-webkit-backdrop-filter: blur(0)) {
+            @supports (background-color: -apple-system-control-background) {
                 :root {
-                    --r-menu-bg: Window;
+                    --r-menu-bg: -apple-system-control-background;
                 }
             }
 
@@ -282,7 +281,6 @@ class RdTooltip {
                         --r-menu-bg: black;
                         --r-menu-color: white;
                         --r-menu-active: rgba(255,255,255,.3);
-                        --r-menu-item-separator: rgba(255,255,255,.3);
                         --r-menu-item-width: 48px;
                         --r-menu-item-height: 38px;
                         --r-menu-border-radius: 8px;
@@ -296,7 +294,8 @@ class RdTooltip {
                 
                 z-index: 99999999 !important;
                 background-color: var(--r-menu-bg) !important;
-                box-shadow: 0 0 0 .5px rgba(0,0,0,.1), 0 .5px 0 rgba(0,0,0,.1), 0 3px 6px rgba(0,0,0,.1), 0 6px 30px rgba(0,0,0,.1) !important;
+                background-image: linear-gradient(to bottom, rgba(255,255,255,.1) 0, rgba(255,255,255,.1) 100%) !important;
+                box-shadow: 0 0 0 .5px rgba(0,0,0,.15), 0 .5px 0 rgba(0,0,0,.1), 0 6px 12px rgba(0,0,0,.1), 0 10px 20px rgba(0,0,0,.05) !important;
                 margin: 4px !important;
                 width: auto !important;
                 height: auto !important;
@@ -332,7 +331,7 @@ class RdTooltip {
             /* Dropdown grow down on desktop on hover */
             @media (pointer: fine) {
                 .${this._classMenu} > li {
-                    display: block !important;
+                    display: grid !important;
                     max-height: var(--r-menu-item-height) !important;
                     transition: max-height .2s ease-in-out !important;
                     transition-delay: .25s !important;
@@ -357,7 +356,7 @@ class RdTooltip {
                 background: transparent !important;
                 border: 0 !important;
                 border-radius: 0 !important;
-                box-shadow: 0.5px 0 0 var(--r-menu-item-separator) !important;
+                box-shadow: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 display: flex !important;
@@ -373,6 +372,9 @@ class RdTooltip {
             }
             .${this._classMenu} button:active {
                 background: var(--r-menu-active) !important;
+            }
+            .${this._classMenu} button:active *, .${this._classMenu} button:active:before {
+                opacity: .8 !important;
             }
             .${this._classMenu} button[hidden='true'] {
                 display: none !important;
@@ -419,7 +421,7 @@ class RdTooltip {
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 100%) !important;
             }
             button[${this._attrColor}=yellow]:before {
-                box-shadow: 0 0 0 0.5px rgba(0,0,0,.3) !important;
+                box-shadow: 0 0 0 .5px #999900 !important;
             }
             ${this._colors.map(color=>`
                 .${this._classMenu} button[${this._attrColor}=${color}]:before { background-color: ${color} !important; }
@@ -605,7 +607,7 @@ class RdHighlight {
         const text = selection.toString().trim()
 
         if (!this.test(text)) {
-            alert('⚠️ Unfortunately we can\'t add this text')
+            alert('Unfortunately we can\'t add this text')
             return
         }
         
@@ -615,7 +617,7 @@ class RdHighlight {
 
     noteSelection(x, y) {
         if (!this.pro)
-            return alert(`Notes/annotations only available in Pro plan`)
+            return alert(`Annotations available in Raindrop.io Pro`)
 
         RdPrompt(x, y, 'Add note...', '', note=>{
             if (note.trim())
@@ -697,6 +699,8 @@ class RdHighlight {
     }
 
     _markNoteClick(x, y) {
+        if (!this.pro)
+            return alert(`Annotations available in Raindrop.io Pro`)
         if (!this._activeMarkId) return
 
         const mark = this._container.querySelector(`[${this._attrId}="${this._activeMarkId}"]`)
