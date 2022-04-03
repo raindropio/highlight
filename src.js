@@ -220,12 +220,12 @@ class RdTooltip {
         this._menu.innerHTML = `
             <li title="Add highlight to Raindrop.io">
                 ${this._colors.map(color=>`
-                    <button class="${this._classButtonColor}" ${this._attrColor}="${color}"></button>
+                    <button class="${this._classButtonColor}" ${this._attrColor}="${color}"><span /></button>
                 `).join('')}
             </li>
             
             <button class="${this._classButtonNote}" title="Add annotation to Raindrop.io">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><g fill-rule="evenodd"><path fill-rule="nonzero" d="M11 3v1H4c-.51283584 0-.93550716.38604019-.99327227.88337887L3 5v11.13L6.19722436 14H15c.5128358 0 .9355072-.3860402.9932723-.8833789L16 13V9h1v4c0 1.1045695-.8954305 2-2 2H6.5l-3.7226499 2.4817666c-.22976435.1531762-.54019902.0910893-.69337525-.138675C2.02921901 17.2609578 2 17.1644539 2 17.0657415V5c0-1.1045695.8954305-2 2-2h7Z"/><path d="M17 0v3h3v1h-3v3h-1V4h-3V3h3V0h1Z"/></g></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M10,2 C14.418278,2 18,5.581722 18,10 C18,14.418278 14.418278,18 10,18 C8.57827688,18 7.24317393,17.629135 6.08615605,16.9788699 L2,18 L3.0222629,13.9158589 C2.37129574,12.7583762 2,11.4225485 2,10 C2,5.581722 5.581722,2 10,2 Z M10,3 C6.13400675,3 3,6.13400675 3,10 C3,11.1072789 3.25670533,12.1753459 3.74159283,13.1395754 L3.89387602,13.4256645 L4.08897687,13.7725727 L3.375,16.625 L6.22947002,15.9123036 L6.57609819,16.107115 C7.61276874,16.6897427 8.78268976,17 10,17 C13.8659932,17 17,13.8659932 17,10 C17,6.13400675 13.8659932,3 10,3 Z M6,9 C6.55228475,9 7,9.44771525 7,10 C7,10.5522847 6.55228475,11 6,11 C5.44771525,11 5,10.5522847 5,10 C5,9.44771525 5.44771525,9 6,9 Z M10,9 C10.5522847,9 11,9.44771525 11,10 C11,10.5522847 10.5522847,11 10,11 C9.44771525,11 9,10.5522847 9,10 C9,9.44771525 9.44771525,9 10,9 Z M14,9 C14.5522847,9 15,9.44771525 15,10 C15,10.5522847 14.5522847,11 14,11 C13.4477153,11 13,10.5522847 13,10 C13,9.44771525 13.4477153,9 14,9 Z"/></svg>
             </button>
 
             <button class="${this._classButtonCopy}" title="Copy text">
@@ -284,8 +284,8 @@ class RdTooltip {
                 --r-menu-bg: Canvas;
                 --r-menu-color: FieldText;
                 --r-menu-active: GrayText;
-                --r-menu-item-width: 32px;
-                --r-menu-item-height: 32px;
+                --r-menu-item-width: 30px;
+                --r-menu-item-height: 30px;
                 --r-menu-border-radius: 8px;
             }
             @supports (background-color: -apple-system-control-background) {
@@ -341,13 +341,13 @@ class RdTooltip {
                 z-index: 99999999 !important;
                 background-color: var(--r-menu-bg) !important;
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.1) 0, rgba(255,255,255,.1) 100%) !important;
-                box-shadow: 0 0 0 .5px rgba(255,255,255,.25), 0 0 0 .5px rgba(0,0,0,.3), 0 .5px 0 rgba(0,0,0,.1), 0 6px 12px rgba(0,0,0,.1), 0 10px 20px rgba(0,0,0,.05) !important;
+                box-shadow: 0 0 0 .5px rgba(0,0,0,.15), 0 .5px 0 rgba(0,0,0,.1), 0 6px 12px rgba(0,0,0,.1), 0 10px 20px rgba(0,0,0,.05) !important;
                 margin: 4px !important;
                 width: auto !important;
                 height: auto !important;
                 left: 0 !important; top: 0 !important;
                 animation: none !important;
-                transition: opacity .15s ease-in-out !important;
+                transition: opacity .1s ease-in-out, transform .1s ease-in-out !important;
                 will-change: opacity;
                 border: 0 !important;
                 padding: 0 !important;
@@ -363,6 +363,7 @@ class RdTooltip {
                 -webkit-user-select: none !important;
             }
             .${this._classMenu}[hidden='true'] {
+                transition-duration: .2s !important;
                 pointer-events: none !important;
                 opacity: 0 !important;
             }
@@ -419,9 +420,6 @@ class RdTooltip {
             .${this._classMenu} button:active {
                 background: var(--r-menu-active) !important;
             }
-            .${this._classMenu} button:active *, .${this._classMenu} button:active:before {
-                opacity: .8 !important;
-            }
             .${this._classMenu} button[hidden='true'] {
                 display: none !important;
             }
@@ -458,20 +456,28 @@ class RdTooltip {
             }
 
             /* Color */
-            .${this._classMenu} button[${this._attrColor}]:before {
-                content: '' !important;
-                display: block !important;
-                width: 16px !important;
-                height: 16px !important;
-                border-radius: 16px !important;
-                background-image: linear-gradient(to bottom, rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 100%) !important;
+            .${this._classMenu} button[${this._attrColor}] span {
+                position: relative !important;
+                background-image: linear-gradient(to bottom, rgba(255,255,255,.3) 0, rgba(255,255,255,.3) 100%) !important;
             }
-            button[${this._attrColor}=yellow]:before {
-                box-shadow: 0 0 0 .5px #999900 !important;
+            .${this._classMenu} button[${this._attrColor}] span,
+            .${this._classMenu} button[${this._attrColor}] span:before {
+                display: block !important;
+                width: 17px !important;
+                height: 17px !important;
+                border-radius: 17px !important;
             }
             ${this._colors.map(color=>`
-                .${this._classMenu} button[${this._attrColor}=${color}]:before { background-color: ${color} !important; }
+                .${this._classMenu} button[${this._attrColor}=${color}] span { background-color: ${color} !important; }
             `).join('')}
+            .${this._classMenu} button[${this._attrColor}] span:before {
+                position: absolute !important;
+                content: '' !important;
+                left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important;
+                box-shadow: inset 0 0 0 .5px var(--r-menu-color) !important;
+                opacity: .35;
+                mix-blend-mode: multiply;
+            }
         `
         this._parent._container.appendChild(style)
     }
@@ -537,7 +543,7 @@ class RdSelection {
     _onSelectionChange() {
         clearTimeout(this._selectTimeout)
         this._tooltip.hide()
-        this._selectTimeout = setTimeout(this.render, this.have() ? (this._parent._isMobile ? 400 : 200) : 0)
+        this._selectTimeout = setTimeout(this.render, this.have() ? (this._parent._isMobile ? 400 : 250) : 0)
     }
 }
 
