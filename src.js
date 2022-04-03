@@ -82,7 +82,7 @@ function RdPrompt(x, y, placeholder, defaultValue='', callback){
 class RdTooltip {
     _parent = null //RdHighlight
     _menu = null
-    _listeners = {} //{ onColorClick(color), onNoteClick(x,y), onRemoveClick() }
+    _listeners = {} //{ onColorClick(color), onNoteClick(x,y), onCopyClick(), onRemoveClick() }
 
     _hidden = true
     _colors = ['yellow', 'blue', 'green', 'red']
@@ -90,13 +90,14 @@ class RdTooltip {
     _classMenu = 'rdhm'
     _classButtonColor = 'rdhbh'
     _classButtonNote = 'rdhbn'
+    _classButtonCopy = 'rdhbc'
     _classButtonRemove = 'rdhbr'
     _idCss = 'rdhss'
     _attrColor = 'data-rdhsc'
 
-    constructor(parent, { onColorClick, onNoteClick, onRemoveClick }) {
+    constructor(parent, { onColorClick, onNoteClick, onCopyClick, onRemoveClick }) {
         this._parent = parent
-        this._listeners = { onColorClick, onNoteClick, onRemoveClick }
+        this._listeners = { onColorClick, onNoteClick, onCopyClick, onRemoveClick }
 
         //init
         this._initStyles()
@@ -195,6 +196,12 @@ class RdTooltip {
         this._listeners.onNoteClick(e.screenX - 14, e.screenY - 14)
     }
 
+    _copyClick(e) {
+        e.preventDefault()
+        if (typeof this._listeners.onCopyClick != 'function') return
+        this._listeners.onCopyClick()
+    }
+
     _removeClick(e) {
         e.preventDefault()
         if (typeof this._listeners.onRemoveClick != 'function') return
@@ -218,11 +225,15 @@ class RdTooltip {
             </li>
             
             <button class="${this._classButtonNote}" title="Add annotation to Raindrop.io">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M15 1a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3v1.9a1 1 0 0 1-1.6.7L10.2 16H4a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3h11Zm0 1H4c-1 0-2 .8-2 1.9V13c0 1 .8 2 1.9 2h6.7l3.4 2.9V15h1c1 0 2-.8 2-1.9V4c0-1-.8-2-1.9-2H15Z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><g fill-rule="evenodd"><path fill-rule="nonzero" d="M11 3v1H4c-.51283584 0-.93550716.38604019-.99327227.88337887L3 5v11.13L6.19722436 14H15c.5128358 0 .9355072-.3860402.9932723-.8833789L16 13V9h1v4c0 1.1045695-.8954305 2-2 2H6.5l-3.7226499 2.4817666c-.22976435.1531762-.54019902.0910893-.69337525-.138675C2.02921901 17.2609578 2 17.1644539 2 17.0657415V5c0-1.1045695.8954305-2 2-2h7Z"/><path d="M17 0v3h3v1h-3v3h-1V4h-3V3h3V0h1Z"/></g></svg>
+            </button>
+
+            <button class="${this._classButtonCopy}" title="Copy text">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path fill-rule="evenodd" d="M2 11.5c0 .8.7 1.5 1.5 1.5H7v-1H3.5a.5.5 0 0 1-.5-.5v-8c0-.3.2-.5.5-.5h8c.3 0 .5.2.5.5V7H8.5C7.7 7 7 7.7 7 8.5v8c0 .8.7 1.5 1.5 1.5h8c.8 0 1.5-.7 1.5-1.5v-8c0-.8-.7-1.5-1.5-1.5H13V3.5c0-.8-.7-1.5-1.5-1.5h-8C2.7 2 2 2.7 2 3.5v8Zm6-3c0-.3.2-.5.5-.5h8c.3 0 .5.2.5.5v8c0 .3-.2.5-.5.5h-8a.5.5 0 0 1-.5-.5v-8Z"/></svg>
             </button>
 
             <button class="${this._classButtonRemove}" title="Delete">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path d="M12 1c.6 0 1 .4 1 1v2h5c.6 0 1 .4 1 1h-2v12c0 1-1 2-2 2H5c-1 0-2-1-2-2V5H1c0-.6.4-1 1-1h5V2c0-.6.4-1 1-1Zm4 4H4v11.8c0 .7.4 1.2 1 1.2h10c.6 0 1-.5 1-1.2V5ZM9 9v5H8V9h1Zm3 0v5h-1V9h1Zm-.5-7h-3c-.3 0-.5.2-.5.5V4h4V2.5c0-.3-.2-.5-.5-.5Z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><path fill-rule="evenodd" d="M5.5 2a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1h-9ZM2 4.5c0-.3.2-.5.5-.5h15a.5.5 0 0 1 0 1H16v12c0 .6-.4 1-1 1H5a1 1 0 0 1-1-1V5H2.5a.5.5 0 0 1-.5-.5ZM5 5h10v12H5V5Z"/></svg>
             </button>
         `
         this._parent._container.appendChild(this._menu)
@@ -240,6 +251,17 @@ class RdTooltip {
                 this._noteClick = this._noteClick.bind(this)
                 e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._noteClick)
                 e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._noteClick)
+            })
+
+        this._menu.querySelectorAll(`.${this._classButtonCopy}`)
+            .forEach(e=>{
+                if (typeof this._listeners.onCopyClick == 'function') {
+                    this._copyClick = this._copyClick.bind(this)
+                    e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._copyClick)
+                    e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._copyClick)
+                } else {
+                    e.setAttribute('hidden', 'true')
+                }
             })
 
         this._menu.querySelectorAll(`.${this._classButtonRemove}`)
@@ -262,7 +284,7 @@ class RdTooltip {
                 --r-menu-bg: Canvas;
                 --r-menu-color: FieldText;
                 --r-menu-active: GrayText;
-                --r-menu-item-width: 34px;
+                --r-menu-item-width: 32px;
                 --r-menu-item-height: 32px;
                 --r-menu-border-radius: 8px;
             }
@@ -274,16 +296,28 @@ class RdTooltip {
 
             /* mobile */
             @media (pointer: coarse) {
-                /* contrast bg */
-                :root {
-                    --r-menu-bg: Window;
-                }
-
                 /* android */
-                :root {
-                    --r-menu-item-width: 44px;
-                    --r-menu-item-height: 48px;
-                    --r-menu-border-radius: 24px;
+                @supports not (-webkit-backdrop-filter: blur(0)) {
+                    :root {
+                        --r-menu-item-width: 44px;
+                        --r-menu-item-height: 48px;
+                        --r-menu-border-radius: 24px;
+                    }
+                    /* android preferes system theme */
+                    @media (prefers-color-scheme: dark) {
+                        :root {
+                            --r-menu-bg: #282828;
+                            --r-menu-color: white;
+                            --r-menu-active: rgba(255,255,255,.2);
+                        }
+                    }
+                    @media (prefers-color-scheme: light) {
+                        :root {
+                            --r-menu-bg: white;
+                            --r-menu-color: black;
+                            --r-menu-active: rgba(0,0,0,.2);
+                        }
+                    }
                 }
 
                 /* ios */
@@ -307,7 +341,7 @@ class RdTooltip {
                 z-index: 99999999 !important;
                 background-color: var(--r-menu-bg) !important;
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.1) 0, rgba(255,255,255,.1) 100%) !important;
-                box-shadow: 0 0 0 .5px rgba(0,0,0,.15), 0 .5px 0 rgba(0,0,0,.1), 0 6px 12px rgba(0,0,0,.1), 0 10px 20px rgba(0,0,0,.05) !important;
+                box-shadow: 0 0 0 .5px rgba(255,255,255,.25), 0 0 0 .5px rgba(0,0,0,.3), 0 .5px 0 rgba(0,0,0,.1), 0 6px 12px rgba(0,0,0,.1), 0 10px 20px rgba(0,0,0,.05) !important;
                 margin: 4px !important;
                 width: auto !important;
                 height: auto !important;
@@ -427,9 +461,9 @@ class RdTooltip {
             .${this._classMenu} button[${this._attrColor}]:before {
                 content: '' !important;
                 display: block !important;
-                width: 18px !important;
-                height: 18px !important;
-                border-radius: 18px !important;
+                width: 16px !important;
+                height: 16px !important;
+                border-radius: 16px !important;
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.4) 0, rgba(255,255,255,.4) 100%) !important;
             }
             button[${this._attrColor}=yellow]:before {
@@ -553,6 +587,7 @@ class RdHighlight {
         this._markClick = this._markClick.bind(this)
         this._markColorClick = this._markColorClick.bind(this)
         this._markNoteClick = this._markNoteClick.bind(this)
+        this._markCopyClick = this._markCopyClick.bind(this)
         this._markRemoveClick = this._markRemoveClick.bind(this)
         this._navClick = this._navClick.bind(this)
 
@@ -561,6 +596,7 @@ class RdHighlight {
         this._tooltip = new RdTooltip(this, {
             onColorClick: this._markColorClick,
             onNoteClick: this._markNoteClick,
+            onCopyClick: this._markCopyClick,
             onRemoveClick: this._markRemoveClick
         })
     }
@@ -732,6 +768,21 @@ class RdHighlight {
                     note: updated
                 })
         })
+        this._tooltip.hide()
+    }
+
+    _markCopyClick() {
+        if (!this._activeMarkId) return
+
+        const elements = this._container.querySelectorAll(`mark[${this._attrId}="${this._activeMarkId}"]`)
+        if (elements.length) {
+            const range = new Range()
+            range.setStartBefore(elements[0])
+            range.setEndAfter(elements[elements.length-1])
+            navigator.clipboard.writeText(range.toString())
+            range.detach()
+        }
+        
         this._tooltip.hide()
     }
 
@@ -996,27 +1047,32 @@ if (rdhEmbed.enabled){
     }
 
     function RdhOnDocumentLoad() {
-        window.removeEventListener('load', RdhOnDocumentLoad)
+        function Init() {
+            window.removeEventListener('DOMContentLoaded', RdhOnDocumentLoad)
 
-        rdh = new RdHighlight(document.body)
-        rdh.onUpdate = details => rdhEmbed.send('RDH_UPDATE', details)
-        rdh.onRemove = details => rdhEmbed.send('RDH_REMOVE', details)
-        rdh.onAdd = details => rdhEmbed.send('RDH_ADD', details)
+            rdh = new RdHighlight(document.body)
+            rdh.onUpdate = details => rdhEmbed.send('RDH_UPDATE', details)
+            rdh.onRemove = details => rdhEmbed.send('RDH_REMOVE', details)
+            rdh.onAdd = details => rdhEmbed.send('RDH_ADD', details)
 
-        //repeat waiting messages
-        if (rdhEmbed.wait.length) {
-            for(const { type, payload } of rdhEmbed.wait)
-                rdhEmbed.receive(type, payload)
-            rdhEmbed.enabled = []
+            //repeat waiting messages
+            if (rdhEmbed.wait.length) {
+                for(const { type, payload } of rdhEmbed.wait)
+                    rdhEmbed.receive(type, payload)
+                rdhEmbed.enabled = []
+            }
+
+            rdhEmbed.send('RDH_READY', { url: location.href })
         }
 
-        rdhEmbed.send('RDH_READY', { url: location.href })
+        //give some time to do other scripts
+        clearTimeout(window._rh_delay)
+        window._rh_delay = setTimeout(Init, 150)
     }
     
-    if (document.readyState == 'complete')
+    if (document.readyState == 'loading') {
+        window.removeEventListener('DOMContentLoaded', RdhOnDocumentLoad)
+        window.addEventListener('DOMContentLoaded', RdhOnDocumentLoad)
+    } else
         RdhOnDocumentLoad()
-    else {
-        window.removeEventListener('load', RdhOnDocumentLoad)
-        window.addEventListener('load', RdhOnDocumentLoad)
-    }
 }
