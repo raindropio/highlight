@@ -1,3 +1,18 @@
+function RdCopyText(doc, text) {
+    const textArea = doc.createElement('textarea')
+    textArea.value = text
+    textArea.style.top = '0'
+    textArea.style.left = '0'
+    textArea.style.position = 'fixed'
+
+    doc.body.appendChild(textArea)
+    textArea.focus()
+    textArea.select()
+
+    doc.execCommand('copy')
+    doc.body.removeChild(textArea)
+}
+
 function RdPrompt(x, y, placeholder, defaultValue='', callback){
     //fallback to usual prompt
     if (
@@ -327,7 +342,7 @@ class RdTooltip {
                         --r-menu-bg: black;
                         --r-menu-color: white;
                         --r-menu-active: rgba(255,255,255,.3);
-                        --r-menu-item-width: 48px;
+                        --r-menu-item-width: 44px;
                         --r-menu-item-height: 38px;
                         --r-menu-border-radius: 8px;
                     }
@@ -785,7 +800,7 @@ class RdHighlight {
             const range = new Range()
             range.setStartBefore(elements[0])
             range.setEndAfter(elements[elements.length-1])
-            navigator.clipboard.writeText(range.toString())
+            RdCopyText(this._document, range.toString())
             range.detach()
         }
         
