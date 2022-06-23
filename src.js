@@ -13,85 +13,74 @@ function RdCopyText(doc, text) {
     doc.body.removeChild(textArea)
 }
 
-function RdPrompt(x, y, placeholder, defaultValue='', callback){
-    //fallback to usual prompt
-    if (
-        (typeof browser == 'object' && 'MozAppearance' in document.documentElement.style) || //firefox extension
-        'ReactNativeWebView' in window //react native
-    ){
-        const returnValue = prompt(placeholder, defaultValue)
-        callback(returnValue === null ? defaultValue : returnValue) //ios send null if user tap cancel
+function RdPrompt(placeholder, defaultValue='', callback){
+    //electron
+    if (typeof require == 'function') {
+        const w = 350, h = 100
+        const p = window.open('', 'prompt', `popup,frame=false,width=${w},height=${h},left=${(screen.width/2) - (w/2)},top=${(screen.height/2) - (h/2)}`)
+        p.document.documentElement.innerHTML = `
+        <meta name="color-scheme" content="light dark">
+        <style>
+            * {
+                box-sizing: border-box;
+                font: 14px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+                margin: 0;
+            }
+            html, body, form {
+                width: 100vw;height: 100vh;height: -webkit-fill-available;
+            }
+            form {
+                display: flex;
+                flex-direction: column;
+                padding: 1em;
+                gap: 1em;
+            }
+            input[type="text"] {
+                flex: 1;
+                display: block;
+                padding: .5em;
+            }
+            div {
+                display: flex;
+                justify-content: flex-end;
+                gap: .5em;
+            }
+            input[type="submit"] {
+                order: 1;
+                font-weight: bold;
+            }
+        </style>
+        <form><input type="text" autoFocus placeholder="${placeholder}" /><div><input type="submit" value="OK" /><button>Cancel</button></div></form>
+        `
+        const input = p.document.querySelector('input[type="text"]')
+        input.value = defaultValue
+        
+        const form = p.document.querySelector('form')
+        form.addEventListener('submit', function(e){
+            e.preventDefault()
+            if (p.closed) return
+            callback(input.value)
+            p.close()
+        })
+
+        const cancel = p.document.querySelector('button')
+        cancel.addEventListener('click', function(e) {
+            e.preventDefault()
+            if (p.closed) return
+            callback(defaultValue)
+            p.close()
+        })
+
+        p.window.addEventListener('keydown', function(e) {
+            if (e.code == 'Escape') cancel.click()
+        })
+        p.window.addEventListener('blur', ()=>{cancel.click()})
         return
     }
-    
-    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    const p = window.open('', 'prompt', `popup,frame=false,width=300,height=150,left=${x||0},top=${y||0}`)
-    p.document.documentElement.innerHTML = `
-        <html><head>
-            <title>${isDarkMode ? '🗨' : '💬'}</title>
-            <meta name="color-scheme" content="light dark">
-            <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,maximum-scale=1,user-scalable=0"/>
-            <style>
-                html, body, textarea {
-                    -webkit-text-size-adjust: 100%;
-                    box-sizing: border-box;
-                    display: block;
-                    width: 100vw;height: 100vh;height: -webkit-fill-available;
-                    margin: 0;outline: none;border: 0;
-                    font: 14px -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
-                    resize: none;
-                }
-                textarea {
-                    padding: 10px;
-                }
-                @media (pointer: coarse) {
-                    textarea {
-                        font-size: 24px;
-                        padding: 20px;
-                    }
-                }
-            </style>
-        </head><body>
-            <textarea 
-                type="text" 
-                autoFocus 
-                maxlength="5000"
-                placeholder="${placeholder}">
-            </textarea>
-        </body></html>
-    `
 
-    function submit(e) {
-        e.preventDefault()
-        e.stopPropagation()
-        if (p.closed) return
-        callback(textarea.value)
-        p.close()
-    }
-
-    const textarea = p.document.querySelector('textarea')
-    textarea.value = defaultValue
-    textarea.setSelectionRange(0, textarea.value.length)
-    textarea.addEventListener('keydown', e=>{
-        switch(e.code) {
-            case 'Enter':
-                if (e.metaKey || e.ctrlKey)
-                    e.target.value+="\n"
-                else if (!e.shiftKey)
-                    submit(e)
-            break
-            case 'Escape':
-                textarea.value = defaultValue
-                submit(e)
-            break
-        }
-    })
-
-    setTimeout(() => {
-        textarea.addEventListener('blur', submit)
-        if (p.document.activeElement != textarea)
-            submit()
-    }, 100)
+    const returnValue = prompt(placeholder, defaultValue)
+    callback(returnValue === null ? defaultValue : returnValue) //ios send null if user tap cancel
+    return
 }
 
 class RdTooltip {
@@ -689,14 +678,14 @@ class RdHighlight {
         this._window.getSelection().removeAllRanges()
     }
 
-    noteSelection(x, y) {
+    noteSelection() {
         if (!this.pro)
             return alert(`Annotations available in Raindrop.io Pro`)
 
         const text = this.getSelectionText(true)
         if (!text) return
 
-        RdPrompt(x, y, 'Add note...', '', note=>{
+        RdPrompt('Notes', '', note=>{
             if (!(note||'').trim()) return
             this.onAdd({ note, text })
             this._window.getSelection().removeAllRanges()
@@ -774,7 +763,7 @@ class RdHighlight {
         this._tooltip.hide()
     }
 
-    _markNoteClick(x, y) {
+    _markNoteClick() {
         if (!this.pro)
             return alert(`Annotations available in Raindrop.io Pro`)
         if (!this._activeMarkId) return
@@ -782,7 +771,7 @@ class RdHighlight {
         const mark = this._container.querySelector(`[${this._attrId}="${this._activeMarkId}"]`)
         const note = mark.getAttribute('title') || ''
 
-        RdPrompt(x, y, 'Note...', note, updated=>{
+        RdPrompt('Notes', note, updated=>{
             if (note != updated)
                 this.onUpdate({
                     _id: this._activeMarkId,
