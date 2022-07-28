@@ -371,6 +371,9 @@ class RdTooltip {
                 pointer-events: none !important;
                 opacity: 0 !important;
             }
+            .${this._classMenu}[hidden='false'] {
+                opacity: 1 !important;
+            }
 
             /* Dropdown */
             .${this._classMenu} > li {
@@ -426,6 +429,9 @@ class RdTooltip {
             }
             .${this._classMenu} button[hidden='true'] {
                 display: none !important;
+            }
+            .${this._classMenu} button[hidden='false'] {
+                display: flex !important;
             }
             .${this._classMenu} button[data-badge]:before {
                 content: "" !important;
@@ -638,7 +644,10 @@ class RdHighlight {
     getSelectionText(validate=false) {
         const selection = this._window.getSelection()
         if (!selection.rangeCount) return
-        const text = selection.toString().trim()
+
+        //selection.getRangeAt(0).toString() better vs just selection.toString() 
+        //s.range gets text without any css text transform applied. important!
+        const text = selection.getRangeAt(0).toString().trim()
         if (validate && !this.test(text)) {
             alert('Unfortunately we can\'t add this text')
             return

@@ -18,7 +18,7 @@
     One thing that comes up often is how they relate to scrollbars. For example, if an element is sized to 100vw and stretches edge-to-edge, that’s fine so long as the page doesn’t have a vertical scrollbar. If it does have a vertical scrollbar, then 100vw is too wide, and the presence of that vertical scrollbar triggers a horizontal scrollbar because viewport units don’t have an elegant/optional way of handling that. So you might be hiding overflow on the body when you otherwise wouldn’t need to, for example. (Demo)
   </p>
 
-  <p>
+  <p style="text-transform: uppercase;">
     Another scenario involves mobile browsers. You might use viewport units to help you position a fixed footer along the bottom of the screen. But then browser chrome might come up (e.g. navigation, keyboard, etc), and it may cover the footer, because the mobile browser doesn’t consider anything changed about the viewport size.
   </p>
 
