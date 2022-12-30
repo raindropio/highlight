@@ -246,23 +246,23 @@ class RdTooltip {
         this._menu.querySelectorAll(`.${this._classButtonColor}`)
             .forEach(e=>{
                 this._colorClick = this._colorClick.bind(this)
-                e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._colorClick)
-                e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._colorClick)
+                e.removeEventListener('click', this._colorClick)
+                e.addEventListener('click', this._colorClick)
             })
 
         this._menu.querySelectorAll(`.${this._classButtonNote}`)
             .forEach(e=>{
                 this._noteClick = this._noteClick.bind(this)
-                e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._noteClick)
-                e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._noteClick)
+                e.removeEventListener('click', this._noteClick)
+                e.addEventListener('click', this._noteClick)
             })
 
         this._menu.querySelectorAll(`.${this._classButtonCopy}`)
             .forEach(e=>{
                 if (typeof this._listeners.onCopyClick == 'function') {
                     this._copyClick = this._copyClick.bind(this)
-                    e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._copyClick)
-                    e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._copyClick)
+                    e.removeEventListener('click', this._copyClick)
+                    e.addEventListener('click', this._copyClick)
                 } else {
                     e.setAttribute('hidden', 'true')
                 }
@@ -271,8 +271,8 @@ class RdTooltip {
         this._menu.querySelectorAll(`.${this._classButtonRemove}`)
             .forEach(e=>{
                 this._removeClick = this._removeClick.bind(this)
-                e.removeEventListener(this._parent._isMobile ? 'touchend' : 'click', this._removeClick)
-                e.addEventListener(this._parent._isMobile ? 'touchend' : 'click', this._removeClick)
+                e.removeEventListener('click', this._removeClick)
+                e.addEventListener('click', this._removeClick)
             })
     }
 
@@ -706,7 +706,7 @@ class RdHighlight {
     }
 
     /* Wrap all canditates in <mark> tag */
-    mark(ranges, { _id, color, note }) {        
+    mark(ranges, { _id, color, note }) {
         ranges.forEach((range, index)=>{
             //create mark tag
             const mark = this._document.createElement('mark')
@@ -1011,6 +1011,17 @@ else if ('ReactNativeWebView' in window) {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type, payload }))
 
     window.ReactNativeWebViewSendMessage = (data)=>rdhEmbed.receive(data.type, data.payload)
+}
+
+//wkwebview
+else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.rdh) {
+    rdhEmbed.enabled = true
+
+    rdhEmbed.send = (type, payload)=>
+        window.webkit.messageHandlers.rdh.postMessage({ type, payload })
+
+    window.rdhSend = (data)=>rdhEmbed.receive(data.type, data.payload)
+    //webView.evaluateJavaScript("window.rdhSend({ type: 'RDH_CONFIG', payload: { enabled: true } })")
 }
 
 //iframe
