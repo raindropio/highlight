@@ -947,7 +947,7 @@ class RdHighlight {
             switch(child.nodeType) {
                 case 1: //element node
                     if (
-                        child.offsetParent && //ignore invisible
+                        //child.offsetParent && //ignore invisible //BUGGGYYYYY!!!!
                         !child.hasAttribute(this._attrId) //ignore already marked elements
                     )
                         textNodes.push(...this._getTextNodes(child)); 
