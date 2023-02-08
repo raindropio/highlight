@@ -15,7 +15,7 @@ function RdCopyText(doc, text) {
 
 function RdPrompt(placeholder, defaultValue='', callback){
     //electron
-    if (typeof require == 'function') {
+    if (rdhPlatform == 'electron') {
         const w = 350, h = 100
         const p = window.open('', 'prompt', `popup,frame=false,width=${w},height=${h},left=${(screen.width/2) - (w/2)},top=${(screen.height/2) - (h/2)}`)
         p.document.documentElement.innerHTML = `
@@ -246,23 +246,23 @@ class RdTooltip {
         this._menu.querySelectorAll(`.${this._classButtonColor}`)
             .forEach(e=>{
                 this._colorClick = this._colorClick.bind(this)
-                e.removeEventListener('click', this._colorClick)
-                e.addEventListener('click', this._colorClick)
+                e.removeEventListener('mousedown', this._colorClick)
+                e.addEventListener('mousedown', this._colorClick)
             })
 
         this._menu.querySelectorAll(`.${this._classButtonNote}`)
             .forEach(e=>{
                 this._noteClick = this._noteClick.bind(this)
-                e.removeEventListener('click', this._noteClick)
-                e.addEventListener('click', this._noteClick)
+                e.removeEventListener('mousedown', this._noteClick)
+                e.addEventListener('mousedown', this._noteClick)
             })
 
         this._menu.querySelectorAll(`.${this._classButtonCopy}`)
             .forEach(e=>{
                 if (typeof this._listeners.onCopyClick == 'function') {
                     this._copyClick = this._copyClick.bind(this)
-                    e.removeEventListener('click', this._copyClick)
-                    e.addEventListener('click', this._copyClick)
+                    e.removeEventListener('mousedown', this._copyClick)
+                    e.addEventListener('mousedown', this._copyClick)
                 } else {
                     e.setAttribute('hidden', 'true')
                 }
@@ -271,8 +271,8 @@ class RdTooltip {
         this._menu.querySelectorAll(`.${this._classButtonRemove}`)
             .forEach(e=>{
                 this._removeClick = this._removeClick.bind(this)
-                e.removeEventListener('click', this._removeClick)
-                e.addEventListener('click', this._removeClick)
+                e.removeEventListener('mousedown', this._removeClick)
+                e.addEventListener('mousedown', this._removeClick)
             })
     }
 
@@ -963,6 +963,7 @@ class RdHighlight {
 
 /* Auto-init for embeded pages */
 let rdh
+let rdhPlatform
 let rdhEmbed = {
     enabled: false,
     wait: [],
@@ -989,6 +990,19 @@ if (
     }
     runtime.onMessage.removeListener(onMessage)
     runtime.onMessage.addListener(onMessage)
+    rdhPlatform = 'extension'
+}
+
+//wkwebview
+else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.rdh) {
+    rdhEmbed.enabled = true
+
+    rdhEmbed.send = (type, payload)=>
+        window.webkit.messageHandlers.rdh.postMessage({ type, payload })
+
+    window.rdhSend = (data)=>rdhEmbed.receive(data.type, data.payload)
+    //webView.evaluateJavaScript("window.rdhSend({ type: 'RDH_CONFIG', payload: { enabled: true } })")
+    rdhPlatform = 'wkwebview'
 }
 
 //electron
@@ -1001,6 +1015,7 @@ else if (typeof require == 'function') {
     const onMessage = (_, data) => rdhEmbed.receive(data.type, data.payload)
     ipcRenderer.removeListener('RDH', onMessage)
     ipcRenderer.on('RDH', onMessage)
+    rdhPlatform = 'electron'
 }
 
 //react native
@@ -1011,17 +1026,7 @@ else if ('ReactNativeWebView' in window) {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type, payload }))
 
     window.ReactNativeWebViewSendMessage = (data)=>rdhEmbed.receive(data.type, data.payload)
-}
-
-//wkwebview
-else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.rdh) {
-    rdhEmbed.enabled = true
-
-    rdhEmbed.send = (type, payload)=>
-        window.webkit.messageHandlers.rdh.postMessage({ type, payload })
-
-    window.rdhSend = (data)=>rdhEmbed.receive(data.type, data.payload)
-    //webView.evaluateJavaScript("window.rdhSend({ type: 'RDH_CONFIG', payload: { enabled: true } })")
+    rdhPlatform = 'reactnative'
 }
 
 //iframe
@@ -1038,6 +1043,7 @@ else if (window.self !== window.top) {
     }
     window.removeEventListener('message', onMessage)
     window.addEventListener('message', onMessage)
+    rdhPlatform = 'iframe'
 }
 
 if (rdhEmbed.enabled){
