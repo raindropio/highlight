@@ -1099,6 +1099,11 @@ if (rdhEmbed.enabled){
             }
 
             rdhEmbed.send('RDH_READY', { url: location.href })
+
+            //fire `dispatchEvent(new Event('load'))` to force reload, useful for preview scripts pdf.js
+            window.addEventListener('load', ()=>{
+                rdhEmbed.send('RDH_READY', { url: location.href })
+            })
         }
 
         //give some time to do other scripts
