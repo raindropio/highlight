@@ -391,6 +391,7 @@ class RdTooltip {
                     transition-delay: .25s !important;
                     will-change: max-height;
                     overflow: hidden !important;
+                    padding: 0 !important;
                 }
                 .${this._classMenu} > li:hover {
                     transition-delay: .15s !important;
@@ -572,7 +573,7 @@ class RdHighlight {
     _container = null
     _window = null
     _document = null
-    _isMobile = matchMedia('(pointer:coarse)').matches
+    _isMobile = navigator.userAgentData?.mobile || matchMedia('(pointer:coarse)').matches
 
     _selection = null
     _tooltip = null
@@ -645,9 +646,9 @@ class RdHighlight {
         const selection = this._window.getSelection()
         if (!selection.rangeCount) return
 
-        //selection.getRangeAt(0).toString() better vs just selection.toString() 
-        //s.range gets text without any css text transform applied. important!
-        const text = selection.getRangeAt(0).toString().trim()
+        //selection.getRangeAt(0).toString() vs just selection.toString() 
+        //s.range gets text without any css text transform applied but sometime contain invisible text, bad. just selection.toString() is better
+        const text = selection.toString().trim()
         if (validate && !this.test(text)) {
             alert('Unfortunately we can\'t add this text')
             return
