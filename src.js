@@ -298,43 +298,6 @@ class RdTooltip {
                 }
             }
 
-            /* mobile */
-            @media (pointer: coarse) {
-                /* android */
-                @supports not (-webkit-backdrop-filter: blur(0)) {
-                    :root {
-                        --r-menu-item-width: 44px;
-                        --r-menu-item-height: 48px;
-                        --r-menu-border-radius: 8px;
-                    }
-                }
-
-                /* ios */
-                @supports (-webkit-backdrop-filter: blur(0)) {
-                    :root {
-                        --r-menu-item-width: 44px;
-                        --r-menu-item-height: 38px;
-                        --r-menu-border-radius: 8px;
-                    }
-                }
-
-                /* common */
-                @media (prefers-color-scheme: dark) {
-                    :root {
-                        --r-menu-bg: rgba(0,0,0,.94);
-                        --r-menu-color: white;
-                        --r-menu-active: rgba(255,255,255,.2);
-                    }
-                }
-                @media (prefers-color-scheme: light) {
-                    :root {
-                        --r-menu-bg: rgba(253,253,253,.85);
-                        --r-menu-color: black;
-                        --r-menu-active: rgba(0,0,0,.2);
-                    }
-                }
-            }
-
             .${this._classMenu} {
                 position: absolute !important;
                 display: flex !important;
@@ -342,8 +305,6 @@ class RdTooltip {
                 z-index: 99999999 !important;
                 background-color: var(--r-menu-bg) !important;
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.1) 0, rgba(255,255,255,.1) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
                 box-shadow: 0 3px 30px rgba(0,0,0,.15), 0 10px 20px rgba(0,0,0,.05) !important;
                 margin: 4px !important;
                 width: auto !important;
@@ -379,23 +340,6 @@ class RdTooltip {
                 display: flex !important;
                 flex-direction: row !important;
                 flex-wrap: wrap !important;
-            }
-
-            /* Dropdown grow down on desktop on hover */
-            @media (pointer: fine) {
-                .${this._classMenu} > li {
-                    display: grid !important;
-                    max-height: var(--r-menu-item-height) !important;
-                    transition: max-height .2s ease-in-out !important;
-                    transition-delay: .25s !important;
-                    will-change: max-height;
-                    overflow: hidden !important;
-                    padding: 0 !important;
-                }
-                .${this._classMenu} > li:hover {
-                    transition-delay: .15s !important;
-                    max-height: ${this._colors.length * 32}px !important;
-                }
             }
 
             /* Buttons */
@@ -450,16 +394,6 @@ class RdTooltip {
                 line-height: 11px !important;
                 font-weight: 600 !important;
             }
-            @media (pointer: fine) {
-                .${this._classMenu} button[data-active='true'] {
-                    order: -1 !important;
-                }
-            }
-            @media (pointer: coarse) {
-                .${this._classMenu} button[data-active='true'] {
-                    display: none !important;
-                }
-            }
 
             .${this._classMenu} * {
                 fill: var(--r-menu-color) !important;
@@ -488,7 +422,92 @@ class RdTooltip {
                 opacity: .35;
                 mix-blend-mode: multiply;
             }
-        `
+        ` + (
+            this._parent._isMobile ? 
+            //mobile only
+            `
+                /* android */
+                @supports not (-webkit-backdrop-filter: blur(0)) {
+                    :root {
+                        --r-menu-item-width: 44px;
+                        --r-menu-item-height: 48px;
+                        --r-menu-border-radius: 24px;
+                    }
+                    @media (prefers-color-scheme: dark) {
+                        :root {
+                            --r-menu-bg: #333333;
+                        }
+                    }
+                    @media (prefers-color-scheme: light) {
+                        :root {
+                            --r-menu-bg: #ffffff;
+                        }
+                    }
+                }
+
+                /* ios */
+                @supports (-webkit-backdrop-filter: blur(0)) {
+                    :root {
+                        --r-menu-item-width: 44px;
+                        --r-menu-item-height: 38px;
+                        --r-menu-border-radius: 8px;
+                    }
+                    @media (prefers-color-scheme: dark) {
+                        :root {
+                            --r-menu-bg: rgba(0,0,0,.94);
+                        }
+                    }
+                    @media (prefers-color-scheme: light) {
+                        :root {
+                            --r-menu-bg: rgba(253,253,253,.85);
+                        }
+                    }
+                    .${this._classMenu} {
+                        -webkit-backdrop-filter: blur(10px) !important;
+                    }
+                }
+
+                /* common */
+                @media (prefers-color-scheme: dark) {
+                    :root {
+                        --r-menu-color: white;
+                        --r-menu-active: rgba(255,255,255,.2);
+                    }
+                }
+                @media (prefers-color-scheme: light) {
+                    :root {
+                        --r-menu-color: black;
+                        --r-menu-active: rgba(0,0,0,.2);
+                    }
+                }
+
+                .${this._classMenu} button[data-active='true'] {
+                    display: none !important;
+                }
+            ` : 
+            //desktop only
+            `
+                .${this._classMenu} button[data-active='true'] {
+                    order: -1 !important;
+                }
+
+                /* Dropdown grow down on desktop on hover */
+                .${this._classMenu} > li {
+                    display: grid !important;
+                    max-height: var(--r-menu-item-height) !important;
+                    transition: max-height .2s ease-in-out !important;
+                    transition-delay: .25s !important;
+                    will-change: max-height;
+                    overflow: hidden !important;
+                    padding: 0 !important;
+                }
+                .${this._classMenu} > li:hover {
+                    transition-delay: .15s !important;
+                    max-height: ${this._colors.length * 32}px !important;
+                }
+            `
+        )
+
         this._parent._container.appendChild(style)
     }
 }
@@ -572,7 +591,7 @@ class RdHighlight {
     _container = null
     _window = null
     _document = null
-    _isMobile = navigator.userAgentData?.mobile || matchMedia('(pointer:coarse)').matches
+    _isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
     _selection = null
     _tooltip = null
