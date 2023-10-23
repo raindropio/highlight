@@ -305,35 +305,32 @@ class RdTooltip {
                     :root {
                         --r-menu-item-width: 44px;
                         --r-menu-item-height: 48px;
-                        --r-menu-border-radius: 24px;
-                    }
-                    /* android preferes system theme */
-                    @media (prefers-color-scheme: dark) {
-                        :root {
-                            --r-menu-bg: #282828;
-                            --r-menu-color: white;
-                            --r-menu-active: rgba(255,255,255,.2);
-                        }
-                    }
-                    @media (prefers-color-scheme: light) {
-                        :root {
-                            --r-menu-bg: white;
-                            --r-menu-color: black;
-                            --r-menu-active: rgba(0,0,0,.2);
-                        }
+                        --r-menu-border-radius: 8px;
                     }
                 }
 
                 /* ios */
                 @supports (-webkit-backdrop-filter: blur(0)) {
                     :root {
-                        /* ios safari always black */
-                        --r-menu-bg: black;
-                        --r-menu-color: white;
-                        --r-menu-active: rgba(255,255,255,.3);
                         --r-menu-item-width: 44px;
                         --r-menu-item-height: 38px;
                         --r-menu-border-radius: 8px;
+                    }
+                }
+
+                /* common */
+                @media (prefers-color-scheme: dark) {
+                    :root {
+                        --r-menu-bg: rgba(0,0,0,.94);
+                        --r-menu-color: white;
+                        --r-menu-active: rgba(255,255,255,.2);
+                    }
+                }
+                @media (prefers-color-scheme: light) {
+                    :root {
+                        --r-menu-bg: rgba(253,253,253,.85);
+                        --r-menu-color: black;
+                        --r-menu-active: rgba(0,0,0,.2);
                     }
                 }
             }
@@ -345,7 +342,9 @@ class RdTooltip {
                 z-index: 99999999 !important;
                 background-color: var(--r-menu-bg) !important;
                 background-image: linear-gradient(to bottom, rgba(255,255,255,.1) 0, rgba(255,255,255,.1) 100%) !important;
-                box-shadow: 0 0 0 .5px rgba(0,0,0,.15), 0 .5px 0 rgba(0,0,0,.1), 0 6px 12px rgba(0,0,0,.1), 0 10px 20px rgba(0,0,0,.05) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
+                box-shadow: 0 3px 30px rgba(0,0,0,.15), 0 10px 20px rgba(0,0,0,.05) !important;
                 margin: 4px !important;
                 width: auto !important;
                 height: auto !important;
