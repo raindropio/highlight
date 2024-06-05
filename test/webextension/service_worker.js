@@ -1,8 +1,9 @@
-const browser = window.browser || window.chrome
+const browser = globalThis.browser || globalThis.chrome
 
 let highlights = []
 
 browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
+    console.log(type, payload)
     if (sender.id != browser.runtime.id || typeof type != 'string') return
 
     switch(type) {
@@ -10,9 +11,9 @@ browser.runtime.onMessage.addListener(({ type, payload }, sender)=>{
             browser.tabs.sendMessage(sender.tab.id, {
                 type: 'RDH_CONFIG',
                 payload: {
-                    enabled: highlights.length ? true : false,
+                    enabled: true, //highlights.length ? true : false,
                     nav: true,
-                    pro: true
+                    pro: false
                 }
             })
             browser.tabs.sendMessage(sender.tab.id, {
