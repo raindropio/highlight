@@ -22,9 +22,11 @@
     $effect(() => { highlighter.smartApply(store.highlights) })
 
     //apply highlights again
+    let loadTimeout: number|undefined
     function onWindowLoad() {
         highlighter.smartApply(store.highlights)
-        setTimeout(() => highlighter.smartApply(store.highlights), 3000)
+        clearTimeout(loadTimeout)
+        loadTimeout = setTimeout(() => highlighter.smartApply(store.highlights), 3000)
     }
 
     //reset selection
@@ -75,7 +77,8 @@
 </script>
 
 <svelte:window
-    onload={onWindowLoad} />
+    onload={onWindowLoad}
+    onpopstate={onWindowLoad} />
 
 <svelte:document 
     onmousedown={onMouseDown}

@@ -80,6 +80,12 @@
     onclose={onDialogClose}>
     <form method="dialog">
         {#if temp?._id}
+            <button type="submit" value="remove" title="Delete highlight">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+                    <g><line x1="2.75" y1="4.25" x2="15.25" y2="4.25" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><path d="M6.75,4.25v-1.5c0-.552,.448-1,1-1h2.5c.552,0,1,.448,1,1v1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M13.5,6.75l-.4,7.605c-.056,1.062-.934,1.895-1.997,1.895H6.898c-1.064,0-1.941-.833-1.997-1.895l-.4-7.605" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g>
+                </svg>
+            </button>
+
             {#each colors as [value, col](value)}
                 <button type="submit" {value}>
                     <span
@@ -107,14 +113,6 @@
                 </g>
             </svg>
         </button>
-
-        {#if temp?._id}
-            <button type="submit" value="remove" title="Delete highlight">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-                    <g><line x1="2.75" y1="4.25" x2="15.25" y2="4.25" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><path d="M6.75,4.25v-1.5c0-.552,.448-1,1-1h2.5c.552,0,1,.448,1,1v1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M13.5,6.75l-.4,7.605c-.056,1.062-.934,1.895-1.997,1.895H6.898c-1.064,0-1.941-.833-1.997-1.895l-.4-7.605" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g>
-                </svg>
-            </button>
-        {/if}
     </form>
 </dialog>
 
@@ -165,6 +163,8 @@
         border-radius: var(--control-size);
         overflow: clip;
         z-index: 999999999999999;
+        margin-right: env(safe-area-inset-right);
+        margin-bottom: env(safe-area-inset-bottom);
 
         background: var(--bg-light);
         background: light-dark(var(--bg-light), var(--bg-dark));

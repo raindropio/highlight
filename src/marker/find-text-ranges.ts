@@ -1,8 +1,9 @@
 const blacklistedTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'OPTION']
 
 export default function(texts: string[]) {
-    const state: { start: [Node, number]|null, end: [Node, number]|null, shift: number }[] = texts.map(()=>({ start: null, end: null, shift: 0 }))
-    const ranges: Range[][] = texts.map(() => [])
+    const find = texts.map(text => text.trim().toLocaleLowerCase())
+    const state: { start: [Node, number]|null, end: [Node, number]|null, shift: number }[] = find.map(()=>({ start: null, end: null, shift: 0 }))
+    const ranges: Range[][] = find.map(() => [])
 
     const treeWalker = document.createTreeWalker(
         document.body, 
@@ -28,15 +29,21 @@ export default function(texts: string[]) {
             if (!char) continue
 
             //search all texts simultaneously
-            texts.forEach((text, j) => {
+            find.forEach((text, j) => {
                 //skip spaces
                 while (text[state[j].shift] && !text[state[j].shift].trim()) state[j].shift++;
-                let matched = text[state[j].shift]?.toLocaleLowerCase() === char
+                let matched = text[state[j].shift] === char
+
+                //maybe previous node have been a mistake?
+                if (!matched && state[j].shift){
+                    state[j].shift = 0
+                    matched = text[state[j].shift] === char
+                }
 
                 if (matched) {
                     //start (first char match)
                     if (!state[j].shift) state[j].start = [node!, i];
-                    else state[j].end = [node!, i];
+                    state[j].end = [node!, i];
 
                     //move to next char
                     state[j].shift++;

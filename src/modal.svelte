@@ -11,8 +11,10 @@
     let compact = $state(true)
 
     $effect(() => {
-        if (store.draft)
+        if (store.draft) {
+            compact = true
             dialogRef?.showModal()
+        }
         else
             dialogRef?.close()
     })
@@ -60,7 +62,7 @@
             <blockquote 
                 role="presentation"
                 class:compact={compact}
-                onclick={()=>compact = !compact}>
+                onclick={()=>compact = false}>
                 {store.draft?.text.trim() || ''}
             </blockquote>
 
@@ -115,11 +117,11 @@
 
     dialog {
         --bg-light: rgb(245, 245, 245);
-        --bg-dark: rgb(25, 25, 25);
+        --bg-dark: rgb(35, 35, 35);
         --fg-light: black;
         --fg-dark: white;
         --control-bg-light: rgb(230, 230, 230);
-        --control-bg-dark: rgb(45, 45, 45);
+        --control-bg-dark: rgb(55, 55, 55);
 
         font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
         font-size: 18px;
@@ -299,7 +301,6 @@
     }
 
     button[value] {
-        font-weight: bold;
         background: blue;
         background: AccentColor;
         color: white;
