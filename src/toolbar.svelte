@@ -47,28 +47,18 @@
             dialogRef?.show()
             dialogRef.inert = false
 
-            const isMobile = navigator.maxTouchPoints > 0
             const sp = store.selected.range.getBoundingClientRect()
+            const l = Math.max(sp.x, 10) + window.scrollX
+            const r = window.innerWidth - Math.max(sp.x, 10) - window.scrollX - sp.width
+            const t = Math.max(sp.y, 40) + window.scrollY + sp.height + 4
+            const b = window.innerHeight - Math.max(sp.y, 40) - window.scrollY + 4
+            const leftSide = l < (window.innerWidth/2 + window.scrollX)
+            const upSide = t < (window.innerHeight/2 + window.scrollY)
 
-            if (isMobile && !store.selected?.highlight) {
-                dialogRef?.style.setProperty('position', 'fixed')
-                dialogRef?.style.setProperty('left', 'auto')
-                dialogRef?.style.setProperty('top', 'auto')
-                dialogRef?.style.setProperty('right', '10px')
-                dialogRef?.style.setProperty('bottom', '10px')
-                dialogRef?.style.setProperty('transform', 'none')
-            }
-            else {
-                const left = sp.x + window.scrollX + sp.width/2
-                const top = sp.y + window.scrollY + (isMobile ? sp.height + 6 : 0)
-
-                dialogRef?.style.setProperty('position', 'absolute')
-                dialogRef?.style.setProperty('right', 'auto')
-                dialogRef?.style.setProperty('bottom', 'auto')
-                dialogRef?.style.setProperty('left', `${Math.floor(Math.max(Math.max(left, window.scrollX), 40))}px`)
-                dialogRef?.style.setProperty('top', `${Math.floor(Math.max(Math.max(top, window.scrollY+40), 0))}px`)
-                dialogRef?.style.setProperty('transform', `translate(${left < 100 ? '0' : '-50%'}, ${isMobile ? '0' : '-100%'})`)
-            }
+            dialogRef?.style.setProperty('left', leftSide ? `${l}px` : 'unset')
+            dialogRef?.style.setProperty('right', leftSide ? 'unset' : `${r}px`)
+            dialogRef?.style.setProperty('top', upSide ? `${t}px` : 'unset')
+            dialogRef?.style.setProperty('bottom', upSide ? 'unset' : `${b}px`)
         }
         else
             dialogRef?.close()
@@ -77,15 +67,10 @@
 
 <dialog
     bind:this={dialogRef}
+    class:new={!temp?._id}
     onclose={onDialogClose}>
     <form method="dialog">
         {#if temp?._id}
-            <button type="submit" value="remove" title="Delete highlight">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-                    <g><line x1="2.75" y1="4.25" x2="15.25" y2="4.25" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><path d="M6.75,4.25v-1.5c0-.552,.448-1,1-1h2.5c.552,0,1,.448,1,1v1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M13.5,6.75l-.4,7.605c-.056,1.062-.934,1.895-1.997,1.895H6.898c-1.064,0-1.941-.833-1.997-1.895l-.4-7.605" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g>
-                </svg>
-            </button>
-
             {#each colors as [value, col](value)}
                 <button type="submit" {value}>
                     <span
@@ -113,6 +98,14 @@
                 </g>
             </svg>
         </button>
+
+        {#if temp?._id}
+            <button type="submit" value="remove" title="Delete highlight">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
+                    <g><line x1="2.75" y1="4.25" x2="15.25" y2="4.25" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><path d="M6.75,4.25v-1.5c0-.552,.448-1,1-1h2.5c.552,0,1,.448,1,1v1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M13.5,6.75l-.4,7.605c-.056,1.062-.934,1.895-1.997,1.895H6.898c-1.064,0-1.941-.833-1.997-1.895l-.4-7.605" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g>
+                </svg>
+            </button>
+        {/if}
     </form>
 </dialog>
 
@@ -156,6 +149,8 @@
 
     dialog {
         position: absolute;
+        left: unset;
+        top: unset;
         right: unset;
         bottom: unset;
         border: none;
@@ -163,13 +158,23 @@
         border-radius: var(--control-size);
         overflow: clip;
         z-index: 999999999999999;
-        margin-right: env(safe-area-inset-right);
-        margin-bottom: env(safe-area-inset-bottom);
 
         background: var(--bg-light);
         background: light-dark(var(--bg-light), var(--bg-dark));
         color: var(--control-fg-light);
         color: light-dark(var(--control-fg-light), var(--control-fg-dark));
+    }
+
+    @media (pointer: coarse) {
+        dialog.new {
+            position: fixed;
+            top: auto !important;
+            left: auto !important;
+            right: 16px !important;
+            bottom: 16px !important;
+            margin-right: env(safe-area-inset-right);
+            margin-bottom: env(safe-area-inset-bottom);
+        }
     }
 
     [open] {
@@ -233,7 +238,7 @@
         display: block;
         width: 12px;
         height: 12px;
-        box-shadow: inset 0 1px 3px rgba(255,255,255,.15), inset 0 0 0 6px var(--color);
+        box-shadow: inset 0 0 0 6px var(--color);
         transition: width .15s ease-in-out, height .15s ease-in-out;
         border-radius: 50%;
     }
@@ -241,30 +246,35 @@
     .color.active {
         width: 16px;
         height: 16px;
+        box-shadow: inset 0 0 0 6px var(--color)
     }
 
     /* animation */
     dialog {
         transition: 
-            display .2s allow-discrete ease-in-out, 
-            overlay .2s allow-discrete ease-in-out, 
-            box-shadow .2s allow-discrete ease-in-out, 
-            opacity .2s ease-in-out;
+            display .25s allow-discrete ease-in-out, 
+            overlay .25s allow-discrete ease-in-out, 
+            box-shadow .25s allow-discrete ease-in-out, 
+            transform .25s allow-discrete ease-in-out,
+            opacity .25s ease-in-out;
         opacity: 0;
+        transform: translateY(3px);
     }
 
     [open] {
         opacity: 1;
+        transform: translateY(0);
     }
 
     dialog:not([open]) {
-        transition-duration: .15s;
+        transition-duration: .2s;
         pointer-events: none;
     }
 
     @starting-style {
         [open] {
             opacity: 0;
+            transform: translateY(-3px);
         }
     }
 </style>

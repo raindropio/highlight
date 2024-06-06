@@ -36,7 +36,7 @@
 
     function onMouseUp() {
         wait = false
-        onSelectionChangeThrottled()
+        onSelectionChange()
     }
 
     function onSelectionChange() {
