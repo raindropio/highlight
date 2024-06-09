@@ -16,6 +16,12 @@ export function apply(highlights: RaindropHighlight[]) {
     return _apply(highlights)
 }
 
+export function cleanup() {
+    if (modern.isSupported)
+        return modern.cleanup()
+    return legacy.cleanup()
+}
+
 export function scrollToId(highlightId: string) {
     if (modern.isSupported)
         return modern.scrollToId(highlightId)

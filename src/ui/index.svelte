@@ -2,7 +2,7 @@
 
 <script lang="ts">
     import type { Store } from '@/store.svelte'
-    import { apply } from '@/marker'
+    import { apply, cleanup } from '@/marker'
     import Toolbar from './toolbar.svelte'
     import Modal from './modal.svelte'
     import Navigation from './navigation.svelte'
@@ -19,6 +19,9 @@
         clearTimeout(loadTimeout)
         loadTimeout = setTimeout(() => apply(store.highlights), 3000)
     }
+
+    //unmount
+    $effect(()=>cleanup)
 </script>
 
 <svelte:window onload={onWindowLoad} onpopstate={onWindowLoad} />

@@ -4,6 +4,8 @@ import { scrollToId } from '@/marker'
 import '@/ui/index.svelte'
 import ipc from '@/ipc'
 
+const ui = document.createElement('rdh-ui') as HTMLElement & { store: Store }
+
 (async()=>{
     //receive events from ipc
     const send = await ipc(event=>{
@@ -14,8 +16,22 @@ import ipc from '@/ipc'
             break
 
             case 'RDH_CONFIG':
-                store.pro = event.payload.pro || false
-                store.nav = event.payload.nav || false
+                if (typeof event.payload.pro == 'boolean')
+                    store.pro = event.payload.pro
+
+                if (typeof event.payload.nav == 'boolean')
+                    store.nav = event.payload.nav
+
+                //insert or remove ui
+                if (typeof event.payload.enabled == 'boolean') {
+                    if (event.payload.enabled === true) {
+                        if (!document.body.contains(ui))
+                            document.body.appendChild(ui)
+                    } else {
+                        if (document.body.contains(ui))
+                            document.body.removeChild(ui)
+                    }
+                }
             break
 
             case 'RDH_SCROLL':
@@ -33,6 +49,7 @@ import ipc from '@/ipc'
         }
     })
 
+    //init store
     const store = createStore(
         highligh=>
             send({ type: 'RDH_ADD', payload: highligh }),
@@ -41,11 +58,8 @@ import ipc from '@/ipc'
         ({ _id })=>
             send({ type: 'RDH_REMOVE', payload: { _id } })
     )
-
-    //append ui
-    const ui = document.createElement('rdh-ui') as HTMLElement & { store: Store }
     ui.store = store
-    document.body.appendChild(ui)
-
+    
+    //ready to receive events
     send({ type: 'RDH_READY', payload: { url: location.href } })
 })()

@@ -106,9 +106,27 @@
 
         function scrollToLast() {
             iframe.postMessage({
-                type: 'RDH_SCROLL',
+                type: 'RDH_CONFIG',
                 payload: {
                     _id: highlights[highlights.length-1]._id
+                }
+            }, '*')
+        }
+
+        function disable() {
+            iframe.postMessage({
+                type: 'RDH_CONFIG',
+                payload: {
+                    enabled: false
+                }
+            }, '*')
+        }
+
+        function enable() {
+            iframe.postMessage({
+                type: 'RDH_CONFIG',
+                payload: {
+                    enabled: true
                 }
             }, '*')
         }
@@ -118,6 +136,14 @@
     <div>
         <button onclick="scrollToLast()">
             Scroll to last
+        </button>
+
+        <button onclick="disable()">
+            Disable
+        </button>
+
+        <button onclick="enable()">
+            Enable
         </button>
     </div>
     <iframe id="iframe" src="embed.html"></iframe>

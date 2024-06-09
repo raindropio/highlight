@@ -56,6 +56,12 @@ export function apply(highlights: RaindropHighlight[]) {
     style.innerHTML = cssRules.join('\n')
 }
 
+export function cleanup() {
+    (document.body.querySelectorAll(`.${cssprefix}`) as NodeListOf<HTMLElement>)
+        .forEach(e=>e.outerHTML = e.innerText)
+    document.getElementById(cssprefix)?.remove()
+}
+
 export function scrollToId(highlightId: string) {
     const mark = document.body.querySelector(`.${cssprefix}[data-id="${highlightId}"]`)
     if (!mark) return
@@ -87,6 +93,7 @@ export function aim(range: Range): RaindropHighlight['_id']|undefined {
 }
 
 function convertHexToRgba(hex: string, opacity: number) {
+    if (!hex) return hex
     const r = parseInt(hex.slice(1, 3), 16),
     g = parseInt(hex.slice(3, 5), 16),
     b = parseInt(hex.slice(5, 7), 16);

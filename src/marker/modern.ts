@@ -67,6 +67,10 @@ export function apply(highlights: RaindropHighlight[]) {
     style.innerHTML = cssRules.join('\n')
 }
 
+export function cleanup() {
+    document.getElementById(cssprefix)?.remove()
+}
+
 export function scrollToId(highlightId: string) {
     //@ts-ignore
     for(const [hid, highlight] of CSS.highlights){

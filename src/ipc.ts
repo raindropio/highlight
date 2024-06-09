@@ -126,6 +126,7 @@ type ApplyEventReceived = {
 type ConfigEventReceived = {
     type: 'RDH_CONFIG'
     payload: {
+        enabled?: boolean
         pro?: boolean
         nav?: boolean
     }
