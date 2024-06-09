@@ -1,6 +1,6 @@
 import type { RaindropHighlight } from '@/types'
 
-export default function(receive: (event: AnyEventReceived)=>void) {
+function connect(receive: (event: AnyEventReceived)=>void) {
     //extension inject script
     if (
         //@ts-ignore
@@ -76,6 +76,45 @@ export default function(receive: (event: AnyEventReceived)=>void) {
     throw new Error('unsupported platform')
 }
 
+export default async function(receive: (event: AnyEventReceived)=>void) {
+    let loaded = false
+    const waiting = new Set<AnyEventReceived>()
+    
+    const send = connect(event=>{
+        //not loaded yet, add to wait list
+        if (!loaded) {
+            waiting.add(event)
+            return
+        }
+
+        receive(event)
+    })
+
+    //wait for document ready
+    await new Promise<void>(res=>{
+        function OnDOMContentLoaded() {
+            window.removeEventListener('DOMContentLoaded', OnDOMContentLoaded)
+            res()
+        }
+    
+        if (document.readyState == 'loading') {
+            window.removeEventListener('DOMContentLoaded', OnDOMContentLoaded)
+            window.addEventListener('DOMContentLoaded', OnDOMContentLoaded, { once: true })
+        } else
+            res()
+    })
+
+    loaded = true
+
+    //repeat waiting events
+    for(const event of waiting) {
+        receive(event)
+        waiting.delete(event)
+    }
+
+    return send
+}
+
 
 
 //received events
@@ -87,7 +126,6 @@ type ApplyEventReceived = {
 type ConfigEventReceived = {
     type: 'RDH_CONFIG'
     payload: {
-        enabled?: boolean
         pro?: boolean
         nav?: boolean
     }

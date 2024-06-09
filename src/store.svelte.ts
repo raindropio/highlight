@@ -1,21 +1,11 @@
 import type { RaindropHighlight } from '@/types'
-import rangeToText from '@/modules/range-to-text'
-
-type Selected = {
-    range: Range,
-    highlight?: RaindropHighlight
-} | undefined
+import { getSelected, rangeToText } from '@/marker'
 
 export type Store = {
     highlights: RaindropHighlight[],
     pro: boolean,
     nav: boolean,
-    readonly selected: Selected,
     readonly draft: RaindropHighlight|undefined,
-    scrollToId: RaindropHighlight['_id']|undefined,
-
-    select: (range: Range, highlight?: RaindropHighlight)=>void,
-    unselect: ()=>void,
 
     addSelected: ()=>void,
     colorSelected: (color: string)=>void,
@@ -26,25 +16,12 @@ export type Store = {
     draftCancel: ()=>void
 }
 
-function normalizeHighlight(highlight: RaindropHighlight): RaindropHighlight {
+function rangeToHighlight(range: Range): RaindropHighlight {
     return {
-        ...highlight,
-        text: highlight.text || '',
-        note: highlight.note || '',
-        color: highlight.color || 'yellow'
+        text: rangeToText(range).trim(),
+        note: '',
+        color: ''
     }
-}
-
-function selectedToHighlight(selected: Selected): RaindropHighlight {
-    return normalizeHighlight(
-        selected?.highlight ?
-            selected.highlight :
-            {
-                text: rangeToText(selected?.range).trim(),
-                note: '',
-                color: ''
-            }
-    )
 }
 
 export function createStore(
@@ -56,65 +33,72 @@ export function createStore(
     let highlights: RaindropHighlight[] = $state([])
     let pro = $state(false)
     let nav = $state(false)
-    let selected: Selected = $state(undefined)
     let draft: RaindropHighlight|undefined = $state(undefined)
-    let scrollToId: RaindropHighlight['_id']|undefined = $state(undefined)
+
+    //private
+    function _upsert(highlight: RaindropHighlight) {
+        const item = {
+            ...highlight,
+            text: highlight.text || '',
+            note: highlight.note || '',
+            color: highlight.color || 'yellow'
+        }
+
+        if (highlight._id) {
+            const index = highlights.findIndex(h=>h._id == highlight._id)
+            if (index != -1)
+                highlights[index] = item
+            onUpdate(item)
+        } else {
+            if (highlights.some(h=>h.text.toLocaleLowerCase().trim() == item.text.toLocaleLowerCase().trim()))
+                return
+            highlights.push(item)
+            onAdd(item)
+        }
+    }
+
+    function _delete(id: RaindropHighlight['_id']) {
+        highlights = highlights.filter(h=>h._id != id)
+        onRemove({ _id: id })
+    }
     
     //selected actions
     function addSelected() {
-        if (!selected) return
-        const highlight = selectedToHighlight(selected)
-
-        if (!highlights.some(h=>h.text.toLocaleLowerCase().trim() == highlight.text.toLocaleLowerCase().trim()))
-            onAdd(highlight)
-
-        selected = undefined
+        const { range, id } = getSelected()||{}
+        if (!range || id) return
+        _upsert(rangeToHighlight(range))
         document.getSelection()?.removeAllRanges()
     }
 
     function colorSelected(color: string) {
-        if (!selected) return
-        onUpdate({ ...selectedToHighlight(selected), color })
-
-        selected = undefined
+        const { range, id } = getSelected()||{}
+        if (!range) return
+        const highlight = id ? highlights.find(h=>h._id == id) : rangeToHighlight(range)
+        if (!highlight) return
+        _upsert({...highlight, color})
         document.getSelection()?.removeAllRanges()
     }
 
     function removeSelected() {
-        if (!selected?.highlight?._id) return
-        onRemove({ _id: selected.highlight._id })
-        
-        selected = undefined
+        const { id } = getSelected()||{}
+        if (!id) return
+        _delete(id)
         document.getSelection()?.removeAllRanges()
-    }
-
-    function select(range: Range, highlight?: RaindropHighlight) {
-        selected = {
-            range,
-            ...(highlight ? { highlight: JSON.parse(JSON.stringify(highlight)) } : {})
-        }
-    }
-
-    function unselect() {
-        if (selected)
-            selected = undefined
     }
 
     //draft actions
     function draftSelected() {
-        if (!selected) return
-        draft = JSON.parse(JSON.stringify(selectedToHighlight(selected)))
-        selected = undefined
+        const { range, id } = getSelected()||{}
+        if (!range) return
+        const highlight = id ? highlights.find(h=>h._id == id) : rangeToHighlight(range)
+        if (!highlight) return
+
+        draft = JSON.parse(JSON.stringify(highlight))
     }
 
     function draftSubmit() {
         if (!draft) return
-        if (draft._id)
-            onUpdate(JSON.parse(JSON.stringify(draft)))
-        else {
-            if (!highlights.some(h=>h.text.toLocaleLowerCase().trim() == draft?.text?.toLocaleLowerCase().trim()))
-                onAdd(JSON.parse(JSON.stringify(draft)))
-        }
+        _upsert(draft)
         draft = undefined
     }
 
@@ -124,18 +108,12 @@ export function createStore(
 
     return {
         get highlights() { return highlights },
-        set highlights(value: RaindropHighlight[]) { highlights = value.map(normalizeHighlight) },
+        set highlights(value: RaindropHighlight[]) { highlights = value },
         get pro() { return pro },
         set pro(value: boolean) { pro = value },
         get nav() { return nav },
         set nav(value: boolean) { nav = value },
-        get selected() { return selected },
         get draft() { return draft },
-        get scrollToId() { return scrollToId },
-        set scrollToId(value: RaindropHighlight['_id']|undefined) { scrollToId = value },
-
-        select,
-        unselect,
 
         addSelected,
         colorSelected,

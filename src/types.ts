@@ -4,10 +4,3 @@ export type RaindropHighlight = {
     note: string
     color: string
 }
-
-export class ScrollToId extends Event {
-    constructor(public _id: string) {
-        super('rdscrolltoid')
-        this._id = _id
-    }
-}

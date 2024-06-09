@@ -1,14 +1,17 @@
 <script lang="ts">
     import type { Store } from '@/store.svelte'
     import { colors } from '@/config'
-    import type { RaindropHighlight } from './types'
+    import type { RaindropHighlight } from '@/types'
+    import throttle from 'lodash-es/throttle'
+    import { getSelected } from '@/marker'
 
     //properties
     let { store } : { store: Store } = $props()
 
     //state
     let dialogRef: HTMLDialogElement
-    let temp: RaindropHighlight|undefined = $state(undefined)
+    let highlight: RaindropHighlight|undefined = $state(undefined)
+    let wait = $state(false)
 
     //internal
     function onDialogClose(e: Event & { currentTarget: HTMLDialogElement }) {
@@ -33,21 +36,40 @@
                     store.colorSelected(value)
                     return
                 }
-
-                store.unselect()
             break
         }
     }
 
-    $effect(() => {
-        if (store.selected){
-            temp = store.selected.highlight
+    //reset selection
+    function onMouseDown() {
+        wait = true
+    }
+
+    function onMouseUp() {
+        wait = false
+        onSelectionChange()
+    }
+
+    function onSelectionChange() {
+        if (wait) {
+            dialogRef?.close()
+            return
+        }
+
+        requestAnimationFrame(() => {
+            const { range, id } = getSelected() || {}
+            if (!range) {
+                dialogRef?.close()
+                return
+            }
+
+            highlight = store.highlights.find(h => h._id == id)
 
             dialogRef.inert = true
             dialogRef?.show()
             dialogRef.inert = false
 
-            const sp = store.selected.range.getBoundingClientRect()
+            const sp = range.getBoundingClientRect()
             const l = Math.max(sp.x, 10) + window.scrollX
             const r = window.innerWidth - Math.max(sp.x, 10) - window.scrollX - sp.width
             const t = Math.max(sp.y, 40) + window.scrollY + sp.height + 4
@@ -59,23 +81,32 @@
             dialogRef?.style.setProperty('right', leftSide ? 'unset' : `${r}px`)
             dialogRef?.style.setProperty('top', upSide ? `${t}px` : 'unset')
             dialogRef?.style.setProperty('bottom', upSide ? 'unset' : `${b}px`)
-        }
-        else
-            dialogRef?.close()
-    })
+        })
+    }
+
+    //get selected range or clicked highlight
+    const onSelectionChangeThrottled = throttle(onSelectionChange, 200, { leading: true, trailing: true })
 </script>
+
+<svelte:document 
+    onmousedown={onMouseDown}
+    ontouchstart={onMouseDown}
+    onmouseup={onMouseUp}
+    ontouchend={onMouseUp}
+    ontouchcancel={onMouseUp}
+    onselectionchange={onSelectionChangeThrottled} />
 
 <dialog
     bind:this={dialogRef}
-    class:new={!temp?._id}
+    class:new={!highlight?._id}
     onclose={onDialogClose}>
     <form method="dialog">
-        {#if temp?._id}
+        {#if highlight?._id}
             {#each colors as [value, col](value)}
                 <button type="submit" {value}>
                     <span
                         class="color"
-                        class:active={value == temp.color} 
+                        class:active={value == highlight.color} 
                         style="--color: {col}">
                     </span>
                 </button>
@@ -91,15 +122,15 @@
         <button type="submit" value="note" title="Add note">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
                 <g>
-                    <path fill={temp?.note ? "currentColor" : "none"} stroke-width={temp?.note ? "0" : undefined} stroke-linecap="round" stroke-linejoin="round" d="M9,1.75C4.996,1.75,1.75,4.996,1.75,9c0,1.319,.358,2.552,.973,3.617,.43,.806-.053,2.712-.973,3.633,1.25,.068,2.897-.497,3.633-.973,.489,.282,1.264,.656,2.279,.848,.433,.082,.881,.125,1.338,.125,4.004,0,7.25-3.246,7.25-7.25S13.004,1.75,9,1.75Z"></path>
-                    <path fill={temp?.note ? "none" : "currentColor"} stroke-width="0" d="M9,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
-                    <path fill={temp?.note ? "none" : "currentColor"} stroke-width="0" d="M5.5,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
-                    <path fill={temp?.note ? "none" : "currentColor"} stroke-width="0" d="M12.5,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
+                    <path fill={highlight?.note ? "currentColor" : "none"} stroke-width={highlight?.note ? "0" : undefined} stroke-linecap="round" stroke-linejoin="round" d="M9,1.75C4.996,1.75,1.75,4.996,1.75,9c0,1.319,.358,2.552,.973,3.617,.43,.806-.053,2.712-.973,3.633,1.25,.068,2.897-.497,3.633-.973,.489,.282,1.264,.656,2.279,.848,.433,.082,.881,.125,1.338,.125,4.004,0,7.25-3.246,7.25-7.25S13.004,1.75,9,1.75Z"></path>
+                    <path fill={highlight?.note ? "none" : "currentColor"} stroke-width="0" d="M9,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
+                    <path fill={highlight?.note ? "none" : "currentColor"} stroke-width="0" d="M5.5,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
+                    <path fill={highlight?.note ? "none" : "currentColor"} stroke-width="0" d="M12.5,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
                 </g>
             </svg>
         </button>
 
-        {#if temp?._id}
+        {#if highlight?._id}
             <button type="submit" value="remove" title="Delete highlight">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
                     <g><line x1="2.75" y1="4.25" x2="15.25" y2="4.25" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><path d="M6.75,4.25v-1.5c0-.552,.448-1,1-1h2.5c.552,0,1,.448,1,1v1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M13.5,6.75l-.4,7.605c-.056,1.062-.934,1.895-1.997,1.895H6.898c-1.064,0-1.941-.833-1.997-1.895l-.4-7.605" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g>
