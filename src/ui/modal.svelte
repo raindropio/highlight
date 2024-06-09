@@ -230,7 +230,7 @@
     }
 
     blockquote {
-        white-space: pre-line;
+        white-space: pre-wrap;
         margin: 0;
         min-width: 100%;
         width: 0;
