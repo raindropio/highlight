@@ -4,6 +4,7 @@
     import type { RaindropHighlight } from '@/types'
     import throttle from 'lodash-es/throttle'
     import { getCurrentRange, resetCurrentRange } from '@/marker'
+    import isMobile from '@/modules/is-mobile'
 
     //properties
     let { store } : { store: Store } = $props()
@@ -108,6 +109,7 @@
 <dialog
     bind:this={dialogRef}
     class:new={!highlight?._id}
+    class:mobile={isMobile()}
     onclose={onDialogClose}>
     <form method="dialog">
         {#if highlight?._id}
@@ -181,10 +183,8 @@
         }
     }
 
-    @media (pointer: coarse) {
-        dialog {
-            --control-size: 26px;
-        }
+    dialog.mobile {
+        --control-size: 26px;
     }
 
     dialog {
@@ -200,25 +200,26 @@
         z-index: 999999999999999;
 
         background: var(--bg-light);
-        background: light-dark(var(--bg-light), var(--bg-dark));
         color: var(--control-fg-light);
-        color: light-dark(var(--control-fg-light), var(--control-fg-dark));
+
+        @supports(color: light-dark(white,black)) {
+            background: light-dark(var(--bg-light), var(--bg-dark));
+            color: light-dark(var(--control-fg-light), var(--control-fg-dark));
+        }
+    }    
+
+    dialog.mobile.new {
+        position: fixed;
+        top: auto !important;
+        left: auto !important;
+        right: 16px !important;
+        bottom: 16px !important;
+        margin-right: env(safe-area-inset-right);
+        margin-bottom: env(safe-area-inset-bottom);
     }
 
-    @media (pointer: coarse) {
-        dialog.new {
-            position: fixed;
-            top: auto !important;
-            left: auto !important;
-            right: 16px !important;
-            bottom: 16px !important;
-            margin-right: env(safe-area-inset-right);
-            margin-bottom: env(safe-area-inset-bottom);
-        }
-
-        dialog.new[open] {
-            box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 10%, transparent), 0 0 0 .5px color-mix(in srgb, currentColor 20%, transparent);
-        }
+    dialog.mobile.new[open] {
+        box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 10%, transparent), 0 0 0 .5px color-mix(in srgb, currentColor 20%, transparent);
     }
 
     [open] {
@@ -261,14 +262,20 @@
     @media (pointer: fine) {
         button:hover {
             background: var(--hover-bg-light);
-            background: light-dark(var(--hover-bg-light), var(--hover-bg-dark));
+
+            @supports(color: light-dark(white,black)) {
+                background: light-dark(var(--hover-bg-light), var(--hover-bg-dark));
+            }
         }
     }
 
     button:active {
         transition: none;
         background: var(--active-bg-light);
-        background: light-dark(var(--active-bg-light), var(--active-bg-dark));
+
+        @supports(color: light-dark(white,black)) {
+            background: light-dark(var(--active-bg-light), var(--active-bg-dark));
+        }
     }
 
     svg {

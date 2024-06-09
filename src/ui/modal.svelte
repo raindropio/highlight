@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Store } from '@/store.svelte'
     import { colors } from '@/config'
+    import isMobile from '@/modules/is-mobile'
 
     //properties
     let { store } : { store: Store } = $props()
@@ -52,6 +53,7 @@
 
 <dialog
     bind:this={dialogRef}
+    class:mobile={isMobile()}
     role="presentation"
     onclose={onDialogClose}
     onmousedown={onDialogMouseDown}>
@@ -132,29 +134,28 @@
         overscroll-behavior: none;
 
         color: var(--fg-light);
-        color: light-dark(var(--fg-light), var(--fg-dark));
-    }
 
-    @media (max-width: 1000px) and (pointer: coarse) {
-        dialog {
-            left: 0;right: 0;bottom: 0;top: 0;
-            width: 100%;
-            margin: 0;
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 0;
+        @supports(color: light-dark(white,black)) {
+            color: light-dark(var(--fg-light), var(--fg-dark));
         }
     }
 
-    @media (pointer: coarse) {
-        dialog {
-            bottom: auto;
-        }
+    dialog.mobile {
+        left: 0;right: 0;bottom: 0;top: 0;
+        width: 100%;
+        margin: 0;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        bottom: auto;
     }
 
     dialog, header {
         background: var(--bg-light);
-        background: light-dark(var(--bg-light), var(--bg-dark));
+
+        @supports(color: light-dark(white,black)) {
+            background: light-dark(var(--bg-light), var(--bg-dark));
+        }
     }
 
     [open] {
@@ -226,7 +227,10 @@
 
     blockquote, .note, button {
         background: var(--control-bg-light);
-        background: light-dark(var(--control-bg-light), var(--control-bg-dark));
+
+        @supports(color: light-dark(white,black)) {
+            background: light-dark(var(--control-bg-light), var(--control-bg-dark));
+        }
     }
 
     blockquote {
@@ -255,6 +259,7 @@
         appearance: none;
         border: 0;
         font: inherit;
+        color: inherit;
         display: block;
         scroll-margin-top: 100vh;
         transition: background .15s ease-in-out, box-shadow .15s ease-in-out;
@@ -294,10 +299,8 @@
         opacity: .5;
     }
 
-    @media (pointer: coarse) {
-        button sup {
-            display: none;
-        }
+    dialog.mobile button sup {
+        display: none;
     }
 
     button[value] {
