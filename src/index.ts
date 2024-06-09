@@ -1,6 +1,6 @@
 import '@webcomponents/custom-elements'
 import { createStore, type Store } from '@/store.svelte'
-import { scrollToId } from '@/marker'
+import { scrollToId, getCurrentRange, resetCurrentRange } from '@/marker'
 import '@/ui/index.svelte'
 import ipc from '@/ipc'
 
@@ -40,11 +40,16 @@ const ui = document.createElement('rdh-ui') as HTMLElement & { store: Store }
             break
 
             case 'RDH_ADD_SELECTION':
-                store.addSelected()
+                const range = getCurrentRange()
+                if (!range) return
+                const highligh = store.find(range)
+                if (!highligh) return
+                store.upsert(highligh)
+                resetCurrentRange()
             break
 
             case 'RDH_NOTE_SELECTION':
-                store.draftSelected()
+                console.log('not implemented yet')
             break
         }
     })

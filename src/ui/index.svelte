@@ -17,7 +17,7 @@
     function onWindowLoad() {
         apply(store.highlights)
         clearTimeout(loadTimeout)
-        loadTimeout = setTimeout(() => apply(store.highlights), 3000)
+        loadTimeout = setTimeout(() => apply(store.highlights), 3000) as any as number
     }
 
     //unmount

@@ -63,7 +63,7 @@
                 role="presentation"
                 class:compact={compact}
                 onclick={()=>compact = false}>
-                {store.draft?.text.trim() || ''}
+                {store.draft?.text?.trim() || ''}
             </blockquote>
 
             <fieldset class="color">

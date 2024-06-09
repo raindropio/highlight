@@ -17,7 +17,7 @@ export function apply(highlights: RaindropHighlight[]) {
     const cssRules = []
 
     //find text ranges
-    const textsRanges = findTextRanges(highlights.map(({ text }) => text))
+    const textsRanges = findTextRanges(highlights.map(({ text }) => text||''))
 
     //create css custom highlights
     for(const i in highlights) {
@@ -37,7 +37,7 @@ export function apply(highlights: RaindropHighlight[]) {
             .${cssprefix}[data-id="${_id}"] {
                 all: unset;
                 display: inline-block;
-                background-color: ${convertHexToRgba(colors.get(color) || color, .5)} !important;
+                background-color: ${convertHexToRgba(colors.get(color!) || color, .5)} !important;
             }
         `)
     }
@@ -92,7 +92,7 @@ export function aim(range: Range): RaindropHighlight['_id']|undefined {
     return
 }
 
-function convertHexToRgba(hex: string, opacity: number) {
+function convertHexToRgba(hex?: string, opacity?: number) {
     if (!hex) return hex
     const r = parseInt(hex.slice(1, 3), 16),
     g = parseInt(hex.slice(3, 5), 16),

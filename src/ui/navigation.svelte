@@ -19,7 +19,7 @@
     {#each store.highlights as highlight(highlight._id)}
         <div
             data-highlight={highlight._id}
-            style="top: var(--highlight-{highlight._id}-top); --color: {colors.get(highlight.color) || highlight.color}"
+            style="top: var(--highlight-{highlight._id}-top); --color: {colors.get(highlight.color!) || highlight.color}"
             ></div>
     {/each}
 </nav>

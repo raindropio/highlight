@@ -1,5 +1,5 @@
 import type { RaindropHighlight } from '@/types'
-import { getSelected, rangeToText } from '@/marker'
+import { aim, rangeToText } from '@/marker'
 
 export type Store = {
     highlights: RaindropHighlight[],
@@ -7,21 +7,13 @@ export type Store = {
     nav: boolean,
     readonly draft: RaindropHighlight|undefined,
 
-    addSelected: ()=>void,
-    colorSelected: (color: string)=>void,
-    removeSelected: ()=>void,
+    find: (range: Range)=>RaindropHighlight|undefined,
+    upsert: (highlight: RaindropHighlight)=>void,
+    remove: (highlight: RaindropHighlight)=>void,
 
-    draftSelected: ()=>void,
+    setDraft: (highlight: RaindropHighlight)=>void,
     draftSubmit: ()=>void,
     draftCancel: ()=>void
-}
-
-function rangeToHighlight(range: Range): RaindropHighlight {
-    return {
-        text: rangeToText(range).trim(),
-        note: '',
-        color: ''
-    }
 }
 
 export function createStore(
@@ -35,70 +27,55 @@ export function createStore(
     let nav = $state(false)
     let draft: RaindropHighlight|undefined = $state(undefined)
 
-    //private
-    function _upsert(highlight: RaindropHighlight) {
-        const item = {
-            ...highlight,
-            text: highlight.text || '',
-            note: highlight.note || '',
-            color: highlight.color || 'yellow'
-        }
+    //actions
+    function find(range: Range): RaindropHighlight|undefined {
+        //existings
+        const _id = aim(range)
+        if (_id) return highlights.find(h=>h._id == _id)
 
-        if (highlight._id) {
-            const index = highlights.findIndex(h=>h._id == highlight._id)
-            if (index != -1)
-                highlights[index] = item
+        //new
+        const text = rangeToText(range).trim()
+        if (!text) return
+        return { text: rangeToText(range).trim(), color: 'yellow' }
+    }
+
+    function upsert(highlight: RaindropHighlight) {
+        const item: RaindropHighlight = {
+            ...(highlight._id ? { _id: highlight._id } : {}),
+            ...(highlight.text ? { text: highlight.text } : {}),
+            ...(highlight.note ? { note: highlight.note } : {}),
+            ...(highlight.color ? { color: highlight.color } : {}),
+            //ignore all unknown fields (otherwise breaks ios)
+        }
+        if (!item.text) return
+
+        const index = highlights.findIndex(h=>
+            h._id == item._id || 
+            h.text?.toLocaleLowerCase().trim() === item.text?.toLocaleLowerCase().trim()
+        )
+
+        if (index != -1){
+            highlights[index] = item
             onUpdate(item)
         } else {
-            if (highlights.some(h=>h.text.toLocaleLowerCase().trim() == item.text.toLocaleLowerCase().trim()))
-                return
             highlights.push(item)
             onAdd(item)
         }
     }
 
-    function _delete(id: RaindropHighlight['_id']) {
-        highlights = highlights.filter(h=>h._id != id)
-        onRemove({ _id: id })
-    }
-    
-    //selected actions
-    function addSelected() {
-        const { range, id } = getSelected()||{}
-        if (!range || id) return
-        _upsert(rangeToHighlight(range))
-        document.getSelection()?.removeAllRanges()
-    }
-
-    function colorSelected(color: string) {
-        const { range, id } = getSelected()||{}
-        if (!range) return
-        const highlight = id ? highlights.find(h=>h._id == id) : rangeToHighlight(range)
-        if (!highlight) return
-        _upsert({...highlight, color})
-        document.getSelection()?.removeAllRanges()
-    }
-
-    function removeSelected() {
-        const { id } = getSelected()||{}
-        if (!id) return
-        _delete(id)
-        document.getSelection()?.removeAllRanges()
+    function remove({ _id }: RaindropHighlight) {
+        highlights = highlights.filter(h=>h._id != _id)
+        onRemove({ _id })
     }
 
     //draft actions
-    function draftSelected() {
-        const { range, id } = getSelected()||{}
-        if (!range) return
-        const highlight = id ? highlights.find(h=>h._id == id) : rangeToHighlight(range)
-        if (!highlight) return
-
+    function setDraft(highlight: RaindropHighlight) {
         draft = JSON.parse(JSON.stringify(highlight))
     }
 
     function draftSubmit() {
         if (!draft) return
-        _upsert(draft)
+        upsert(draft)
         draft = undefined
     }
 
@@ -115,11 +92,11 @@ export function createStore(
         set nav(value: boolean) { nav = value },
         get draft() { return draft },
 
-        addSelected,
-        colorSelected,
-        removeSelected,
+        find,
+        upsert,
+        remove,
 
-        draftSelected,
+        setDraft,
         draftSubmit,
         draftCancel
     }

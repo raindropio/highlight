@@ -3,6 +3,7 @@ import * as legacy from './legacy'
 import throttle from 'lodash-es/throttle'
 import type { RaindropHighlight } from '@/types'
 
+//Rendering
 function _apply(highlights: RaindropHighlight[]) {
     if (modern.isSupported)
         return modern.apply(highlights)
@@ -22,37 +23,30 @@ export function cleanup() {
     return legacy.cleanup()
 }
 
+//Helpers
 export function scrollToId(highlightId: string) {
     if (modern.isSupported)
         return modern.scrollToId(highlightId)
     return legacy.scrollToId(highlightId)
 }
 
-function aim(range: Range) {
+//Ranges
+export function getCurrentRange(): Range | undefined {
+    const selection = document.getSelection()
+    if (!selection?.rangeCount) return
+    return selection.getRangeAt(0)
+}
+
+export function resetCurrentRange() {
+    const selection = document.getSelection()
+    if (!selection?.rangeCount) return
+    selection.removeAllRanges()
+}
+
+export function aim(range: Range): RaindropHighlight['_id']|undefined {
     if (modern.isSupported)
         return modern.aim(range)
     return legacy.aim(range)
-}
-
-export function getSelected() {
-    const range = (()=>{
-        const selection = document.getSelection()
-        if (!selection?.rangeCount) return null
-        return selection.getRangeAt(0)
-    })()
-
-    //maybe user clicked or selected existing highlight?            
-    if (range) {
-        const overlapped = aim(range)
-        if (overlapped)
-            return { range, id: overlapped }
-    }
-
-    //set text selection
-    if (range && !range.collapsed && range.toString().trim())
-        return { range }
-    else
-        return
 }
 
 export function rangeToText(range?: Range) {

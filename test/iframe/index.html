@@ -81,6 +81,8 @@
                         type: 'RDH_APPLY',
                         payload: highlights
                     }, '*')
+
+                    console.log(highlights)
                 break
 
                 case 'RDH_REMOVE':
@@ -89,6 +91,8 @@
                         type: 'RDH_APPLY',
                         payload: highlights
                     }, '*')
+
+                    console.log(highlights)
                 break
 
                 case 'RDH_ADD':
@@ -100,16 +104,30 @@
                         type: 'RDH_APPLY',
                         payload: highlights
                     }, '*')
+
+                    console.log(highlights)
                 break
             }
         })
 
         function scrollToLast() {
             iframe.postMessage({
-                type: 'RDH_CONFIG',
+                type: 'RDH_SCROLL',
                 payload: {
                     _id: highlights[highlights.length-1]._id
                 }
+            }, '*')
+        }
+
+        function addSelected() {
+            iframe.postMessage({
+                type: 'RDH_ADD_SELECTION'
+            }, '*')
+        }
+
+        function noteSelected() {
+            iframe.postMessage({
+                type: 'RDH_NOTE_SELECTION'
             }, '*')
         }
 
@@ -136,6 +154,14 @@
     <div>
         <button onclick="scrollToLast()">
             Scroll to last
+        </button>
+
+        <button onclick="addSelected()">
+            Add selected
+        </button>
+
+        <button onclick="noteSelected()">
+            Note selected
         </button>
 
         <button onclick="disable()">

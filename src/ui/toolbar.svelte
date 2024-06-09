@@ -3,7 +3,7 @@
     import { colors } from '@/config'
     import type { RaindropHighlight } from '@/types'
     import throttle from 'lodash-es/throttle'
-    import { getSelected } from '@/marker'
+    import { getCurrentRange, resetCurrentRange } from '@/marker'
 
     //properties
     let { store } : { store: Store } = $props()
@@ -15,25 +15,31 @@
 
     //internal
     function onDialogClose(e: Event & { currentTarget: HTMLDialogElement }) {
+        if (!highlight) return
+
         const value = e.currentTarget.returnValue
         e.currentTarget.returnValue = ''
 
         switch (value) {
             case 'add':
-                store.addSelected()
+                store.upsert(highlight)
+                resetCurrentRange()
             break
 
             case 'note':
-                store.draftSelected()
+                store.setDraft(highlight)
+                resetCurrentRange()
             break
 
             case 'remove':
-                store.removeSelected()
+                store.remove(highlight)
+                resetCurrentRange()
             break
 
             default:
                 if (colors.has(value)) {
-                    store.colorSelected(value)
+                    store.upsert({ ...highlight, color: value })
+                    resetCurrentRange()
                     return
                 }
             break
@@ -57,13 +63,16 @@
         }
 
         requestAnimationFrame(() => {
-            const { range, id } = getSelected() || {}
-            if (!range) {
+            const range = getCurrentRange()
+            const temp = range && store.find(range)
+
+            //clicked nowhere
+            if (!range || !temp?._id && !range.toString().trim()) {
                 dialogRef?.close()
                 return
             }
 
-            highlight = store.highlights.find(h => h._id == id)
+            highlight = temp
 
             dialogRef.inert = true
             dialogRef?.show()
@@ -205,6 +214,10 @@
             bottom: 16px !important;
             margin-right: env(safe-area-inset-right);
             margin-bottom: env(safe-area-inset-bottom);
+        }
+
+        dialog.new[open] {
+            box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 10%, transparent), 0 0 0 .5px color-mix(in srgb, currentColor 20%, transparent);
         }
     }
 

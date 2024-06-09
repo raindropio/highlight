@@ -21,7 +21,7 @@ export function apply(highlights: RaindropHighlight[]) {
     if (highlights.length) {
         //find text ranges
         const textsRanges = findTextRanges(
-            highlights.map(({ text }) => text)
+            highlights.map(({ text }) => text || '')
         )
 
         //create css custom highlights
@@ -39,7 +39,7 @@ export function apply(highlights: RaindropHighlight[]) {
             cssRules.push(`
                 ::highlight(${cssId}) {
                     all: unset;
-                    background-color: color-mix(in srgb, ${colors.get(color) || color}, transparent 50%) !important;
+                    background-color: color-mix(in srgb, ${colors.get(color!) || color}, transparent 50%) !important;
                 }
 
                 :root {
