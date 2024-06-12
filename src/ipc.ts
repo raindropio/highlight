@@ -38,8 +38,7 @@ function connect(receive: (event: AnyEventReceived)=>void) {
     if (
         //@ts-ignore
         (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') ||
-        (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) ||
-        (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0)
+        (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron)
     ) {
         const { ipcRenderer } = require('electron')    
         const onMessage = (_: any, event: AnyEventReceived) => receive(event)

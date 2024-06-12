@@ -39,7 +39,8 @@ export function apply(highlights: RaindropHighlight[]) {
             cssRules.push(`
                 ::highlight(${cssId}) {
                     all: unset;
-                    background-color: color-mix(in srgb, ${colors.get(color!) || color}, transparent 50%) !important;
+                    background-color: color-mix(in srgb, ${colors.get(color!) || color}, white 50%) !important;
+                    color: black;
                 }
 
                 :root {

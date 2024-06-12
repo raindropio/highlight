@@ -38,13 +38,15 @@
     }
 
     function onNoteKeyDown(e: KeyboardEvent & { currentTarget: HTMLTextAreaElement }) {
-        e.stopImmediatePropagation()
-        e.stopPropagation()
+        if (!isMobile()) {
+            e.stopImmediatePropagation()
+            e.stopPropagation()
 
-        if (e.key == 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            if (submitButtonRef)
-                e.currentTarget.closest('form')?.requestSubmit(submitButtonRef)
+            if (e.key == 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                if (submitButtonRef)
+                    e.currentTarget.closest('form')?.requestSubmit(submitButtonRef)
+            }
         }
     }
 </script>

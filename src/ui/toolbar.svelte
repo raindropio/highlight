@@ -218,10 +218,6 @@
         margin-bottom: env(safe-area-inset-bottom);
     }
 
-    dialog.mobile.new[open] {
-        box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 10%, transparent), 0 0 0 .5px color-mix(in srgb, currentColor 20%, transparent);
-    }
-
     [open] {
         box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 5px 10px rgba(0,0,0,.05), 0 15px 40px rgba(0,0,0,.1);
     }
