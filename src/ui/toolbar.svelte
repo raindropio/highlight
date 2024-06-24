@@ -54,7 +54,7 @@
 
     function onMouseUp() {
         wait = false
-        onSelectionChange()
+        setTimeout(onSelectionChange)
     }
 
     function onSelectionChange() {
@@ -79,9 +79,12 @@
             dialogRef?.show()
             dialogRef.inert = false
 
+            const popupW = 256
+            const gap = 10
+
             const sp = range.getBoundingClientRect()
-            const l = Math.max(sp.x, 10) + window.scrollX
-            const r = window.innerWidth - Math.max(sp.x, 10) - window.scrollX - sp.width
+            const l = Math.min(Math.max(sp.x, gap) + window.scrollX, window.innerWidth + window.scrollX - popupW - gap)
+            const r = Math.min(window.innerWidth - Math.max(sp.x, gap) - window.scrollX - sp.width, window.innerWidth - window.scrollX - popupW - gap)
             const t = Math.max(sp.y, 40) + window.scrollY + sp.height + 4
             const b = window.innerHeight - Math.max(sp.y, 40) - window.scrollY + 4
             const leftSide = l < (window.innerWidth/2 + window.scrollX)
@@ -112,23 +115,15 @@
     class:mobile={isMobile()}
     onclose={onDialogClose}>
     <form method="dialog">
-        {#if highlight?._id}
-            {#each colors as [value, col](value)}
-                <button type="submit" {value}>
-                    <span
-                        class="color"
-                        class:active={value == highlight.color} 
-                        style="--color: {col}">
-                    </span>
-                </button>
-            {/each}
-        {:else}
-            <button type="submit" value="add" title="Create highlight">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
-                    <g><path d="M12.974,8.731c-.474,3.691-3.724,4.113-6.974,3.519" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M2.75,15.25S4.062,3.729,15.25,2.75c-.56,.976-.573,2.605-.946,4.239-.524,2.011-2.335,2.261-4.554,2.261" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g>
-                </svg>
+        {#each colors as [value, col](value)}
+            <button type="submit" {value}>
+                <span
+                    class="color"
+                    class:active={value == highlight?.color} 
+                    style="--color: {col}">
+                </span>
             </button>
-        {/if}
+        {/each}
 
         <button type="submit" value="note" title="Add note">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">

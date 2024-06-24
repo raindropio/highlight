@@ -36,7 +36,7 @@ export function createStore(
         //new
         const text = rangeToText(range).trim()
         if (!text) return
-        return { text: rangeToText(range).trim(), color: 'yellow' }
+        return { text: rangeToText(range).trim() }
     }
 
     function upsert(highlight: RaindropHighlight) {
@@ -44,7 +44,7 @@ export function createStore(
             ...(highlight._id ? { _id: highlight._id } : {}),
             ...(highlight.text ? { text: highlight.text } : {}),
             ...(highlight.note ? { note: highlight.note } : {}),
-            ...(highlight.color ? { color: highlight.color } : {}),
+            color: highlight.color || 'yellow',
             //ignore all unknown fields (otherwise breaks ios)
         }
         if (!item.text) return
