@@ -1,5 +1,9 @@
 # Highlight
-Should be injected an Iframe or in Electron WebView
+```
+npm i
+npm run build
+cd dist/
+```
 
 ### Subscribe to events
     - { type: 'RDH_READY', payload: { url } }               Highlighter is ready to receive incoming msgs
