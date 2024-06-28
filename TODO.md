@@ -1,0 +1,1 @@
+text color also match

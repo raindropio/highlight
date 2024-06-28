@@ -34,7 +34,10 @@ export function scrollToId(highlightId: string) {
 export function getCurrentRange(): Range | undefined {
     const selection = document.getSelection()
     if (!selection?.rangeCount) return
-    return selection.getRangeAt(0)
+    const range = selection.getRangeAt(0)
+    //ignore contenteditable elements
+    if (range?.commonAncestorContainer?.parentElement?.hasAttribute('contenteditable')) return
+    return range
 }
 
 export function resetCurrentRange() {
