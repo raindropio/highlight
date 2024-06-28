@@ -41,9 +41,9 @@ export function createStore(
 
     function upsert(highlight: RaindropHighlight) {
         const item: RaindropHighlight = {
-            ...(highlight._id ? { _id: highlight._id } : {}),
-            ...(highlight.text ? { text: highlight.text } : {}),
-            ...(highlight.note ? { note: highlight.note } : {}),
+            ...(typeof highlight._id == 'string' ? { _id: highlight._id } : {}),
+            ...(typeof highlight.text == 'string' ? { text: highlight.text } : {}),
+            ...(typeof highlight.note == 'string' ? { note: highlight.note } : {}),
             color: highlight.color || 'yellow',
             //ignore all unknown fields (otherwise breaks ios)
         }

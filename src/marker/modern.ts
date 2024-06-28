@@ -28,7 +28,7 @@ export function apply(highlights: RaindropHighlight[]) {
         for(const i in highlights) {
             if (!textsRanges[i].length) continue
 
-            const { _id, color } = highlights[i]
+            const { _id, color, note } = highlights[i]
             const cssId = `${cssprefix}${_id}`
 
             //@ts-ignore
@@ -39,8 +39,10 @@ export function apply(highlights: RaindropHighlight[]) {
             cssRules.push(`
                 ::highlight(${cssId}) {
                     all: unset;
-                    background-color: color-mix(in srgb, ${colors.get(color!) || color}, white 50%) !important;
-                    color: black;
+                    background-color: color-mix(in srgb, ${colors.get(color!) || color || 'yellow'}, white 60%) !important;
+                    color: color-mix(in srgb, ${colors.get(color!) || color}, black 80%) !important;
+                    ${note ? `text-decoration: underline wavy;` : ''}
+                    text-decoration-thickness: from-font;
                 }
 
                 :root {
