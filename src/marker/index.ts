@@ -1,6 +1,5 @@
 import * as modern from './modern'
 import * as legacy from './legacy'
-import throttle from 'lodash-es/throttle'
 import type { RaindropHighlight } from '@/types'
 
 //Rendering
@@ -9,11 +8,8 @@ function _apply(highlights: RaindropHighlight[]) {
         return modern.apply(highlights)
     return legacy.apply(highlights)
 }
-const _applyThrottled = throttle(_apply, 500)
 
 export function apply(highlights: RaindropHighlight[]) {
-    if (highlights.length)
-        return _applyThrottled(highlights)
     return _apply(highlights)
 }
 

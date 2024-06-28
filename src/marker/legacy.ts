@@ -36,8 +36,10 @@ export function apply(highlights: RaindropHighlight[]) {
         cssRules.push(`
             .${cssprefix}[data-id="${_id}"] {
                 all: unset;
-                display: inline-block;
-                background-color: ${convertHexToRgba(colors.get(color!) || color, .5)} !important;
+                display: inline-block !important;
+                background-color: white !important;
+                background-image: linear-gradient(to bottom, ${convertHexToRgba(colors.get(color!) || color, .4)} 0, ${convertHexToRgba(colors.get(color!) || color, .4)} 100%) !important;
+                color: black !important;
             }
         `)
     }

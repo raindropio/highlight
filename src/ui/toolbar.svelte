@@ -2,7 +2,7 @@
     import type { Store } from '@/store.svelte'
     import { colors } from '@/config'
     import type { RaindropHighlight } from '@/types'
-    import throttle from 'lodash-es/throttle'
+    import throttle from '@/modules/throttle'
     import { getCurrentRange, resetCurrentRange } from '@/marker'
     import isMobile from '@/modules/is-mobile'
 
@@ -98,7 +98,7 @@
     }
 
     //get selected range or clicked highlight
-    const onSelectionChangeThrottled = throttle(onSelectionChange, 200, { leading: true, trailing: true })
+    const onSelectionChangeThrottled = throttle(onSelectionChange, 200)
 </script>
 
 <svelte:document 
