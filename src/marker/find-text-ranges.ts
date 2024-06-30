@@ -12,9 +12,9 @@ export default function(texts: string[]) {
         //skip blacklisted tags
         node =>
             (
-                blacklistedTags.includes((node.parentNode as HTMLElement)?.tagName) ||
-                (node.parentNode as HTMLElement)?.contentEditable == 'true' ||
-                !(node.parentNode as HTMLElement)?.checkVisibility()
+                blacklistedTags.includes((node.parentNode as HTMLElement)?.tagName)
+                || (node.parentNode as HTMLElement)?.contentEditable == 'true'
+                // || !(node.parentNode as HTMLElement)?.checkVisibility() //ignore visiblity, maybe it inside section
             ) ?
                 NodeFilter.FILTER_REJECT : 
                 NodeFilter.FILTER_ACCEPT
