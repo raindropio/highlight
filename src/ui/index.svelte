@@ -19,6 +19,7 @@
         clearTimeout(loadTimeout)
         loadTimeout = setTimeout(() => apply(store.highlights), 3000) as any as number
     }
+    $effect.root(()=>{if (document.readyState) onWindowLoad()})
 
     //unmount
     $effect(()=>cleanup)
