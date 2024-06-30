@@ -174,7 +174,6 @@
         font-weight: bold;
         position: sticky;
         top: 0;
-        
     }
 
     @supports(animation-timeline: scroll()) {

@@ -32,7 +32,10 @@ export function getCurrentRange(): Range | undefined {
     if (!selection?.rangeCount) return
     const range = selection.getRangeAt(0)
     //ignore contenteditable elements
-    if (range?.commonAncestorContainer?.parentElement?.hasAttribute('contenteditable')) return
+    if (
+        (range?.commonAncestorContainer?.nodeType == 1 ? range?.commonAncestorContainer as HTMLElement : range?.commonAncestorContainer?.parentElement)
+            ?.closest('[contenteditable=""], [contenteditable=true]')
+    ) return
     return range
 }
 

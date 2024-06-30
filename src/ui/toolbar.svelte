@@ -297,15 +297,16 @@
             display .25s allow-discrete ease-in-out, 
             overlay .25s allow-discrete ease-in-out, 
             box-shadow .25s allow-discrete ease-in-out, 
-            transform .25s allow-discrete ease-in-out,
-            opacity .25s ease-in-out;
+            opacity .25s ease-in-out,
+            left .15s ease-in-out,
+            top .15s ease-in-out,
+            right .15s ease-in-out,
+            bottom .15s ease-in-out;
         opacity: 0;
-        transform: translateY(3px);
     }
 
     [open] {
         opacity: 1;
-        transform: translateY(0);
     }
 
     dialog:not([open]) {
@@ -316,7 +317,6 @@
     @starting-style {
         [open] {
             opacity: 0;
-            transform: translateY(-3px);
         }
     }
 </style>

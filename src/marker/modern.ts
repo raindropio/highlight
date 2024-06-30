@@ -40,7 +40,7 @@ export function apply(highlights: RaindropHighlight[]) {
                 ::highlight(${cssId}) {
                     all: unset;
                     background-color: color-mix(in srgb, ${colors.get(color!) || color || 'yellow'}, white 60%) !important;
-                    color: color-mix(in srgb, ${colors.get(color!) || color}, black 80%) !important;
+                    color: color-mix(in srgb, ${colors.get(color!) || color || 'yellow'}, black 80%) !important;
                     ${note ? `text-decoration: underline wavy; -webkit-text-decoration: underline wavy;` : ''}
                     text-decoration-thickness: from-font;
                 }

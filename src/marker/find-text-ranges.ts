@@ -10,9 +10,12 @@ export default function(texts: string[]) {
         //only text nodes
         NodeFilter.SHOW_TEXT,
         //skip blacklisted tags
-        (node) =>
-            //@ts-ignore
-            blacklistedTags.includes(node.parentNode?.tagName) || !node.parentNode?.checkVisibility() ? 
+        node =>
+            (
+                blacklistedTags.includes((node.parentNode as HTMLElement)?.tagName) ||
+                (node.parentNode as HTMLElement)?.contentEditable == 'true' ||
+                !(node.parentNode as HTMLElement)?.checkVisibility()
+            ) ?
                 NodeFilter.FILTER_REJECT : 
                 NodeFilter.FILTER_ACCEPT
     )
