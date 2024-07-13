@@ -19,8 +19,38 @@
                 "default": "Shift+Alt+S"
             },
             "description": "Highlight selected text"
+        },
+        "_execute_action": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+E",
+                "windows": "Ctrl+Shift+E",
+                "mac": "Command+Shift+E",
+                "chromeos": "Ctrl+Shift+E",
+                "linux": "Ctrl+Shift+E"
+            }
+        },
+        "save-page": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+O",
+                "windows": "Ctrl+Shift+O",
+                "mac": "Command+Shift+O",
+                "chromeos": "Ctrl+Shift+O",
+                "linux": "Ctrl+Shift+O"
+            },
+            "description": "__MSG_savePage__"
+        },
+        "show-bookmarks": {
+            "description": "__MSG_myBookmarks__",
+            "suggested_key": {
+                "default": "Ctrl+Shift+A",
+                "windows": "Ctrl+Shift+A",
+                "mac": "Command+Shift+A",
+                "chromeos": "Ctrl+Shift+A",
+                "linux": "Ctrl+Shift+A"
+            }
         }
     },
+
     "permissions": [
         "activeTab",
         "contextMenus"
