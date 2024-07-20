@@ -210,15 +210,15 @@
         user-select: none;
         -webkit-user-select: none;
         margin: 0;
-        background: Canvas;
-        box-shadow: inset 0 0 0 1em var(--color);
-        transition: box-shadow .2s ease-in-out;
+        background: var(--color);
+        transition: box-shadow .2s ease-in-out, background .2s ease-in-out;
         width: 2em;
         height: 2em;
         border-radius: 50%;
     }
 
     .color input[type="radio"]:checked {
+        background: transparent;
         box-shadow: inset 0 0 0 .5em var(--color);
     }
 

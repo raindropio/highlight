@@ -45,6 +45,11 @@ export function apply(highlights: RaindropHighlight[]) {
                     text-decoration-thickness: from-font;
                 }
 
+                /* fuck you dark reader */
+                html[data-darkreader-scheme="dark"] ::highlight(${cssId}) {
+                    color: CanvasText !important;
+                }
+
                 :root {
                     --highlight-${_id}-top: ${(100/document.documentElement.scrollHeight * (window.scrollY + pos.top - 10)).toFixed(2)}%;
                 }

@@ -219,20 +219,21 @@
 
     form {
         display: flex;
+        gap: 2px;
         margin: 0;
         padding: 0;
     }
 
     button {
-        border-radius: 8px;
+        border-radius: var(--control-size);
         border: 0;
         background: transparent;
         cursor: pointer;
         appearance: none;
         touch-action: manipulation;
-        width: calc(var(--control-size) + var(--padding-m)*2);
+        width: calc(var(--control-size) + var(--padding-s)*2);
         height: calc(var(--control-size) + var(--padding-s)*2);
-        padding: var(--padding-s) var(--padding-m);
+        padding: var(--padding-s);
         color: inherit;
         display: flex;
         align-items: center;
@@ -240,18 +241,9 @@
         transition: background .15s ease-in-out;
     }
 
-    button:first-child {
-        border-top-left-radius: var(--control-size);
-        border-bottom-left-radius: var(--control-size);
-    }
-
-    button:last-child {
-        border-top-right-radius: var(--control-size);
-        border-bottom-right-radius: var(--control-size);
-    }
-
     @media (pointer: fine) {
         button:hover {
+            transition: none;
             background: var(--hover-bg-light);
 
             @supports(color: light-dark(white,black)) {
@@ -278,17 +270,16 @@
         pointer-events: none;
         content: '';
         display: block;
-        width: 12px;
-        height: 12px;
-        box-shadow: inset 0 0 0 6px var(--color);
-        transition: width .15s ease-in-out, height .15s ease-in-out;
+        width: 15px;
+        height: 15px;
+        background: var(--color);
+        transition: background .15s ease-in-out, box-shadow .15s ease-in-out;
         border-radius: 50%;
     }
 
     .color.active {
-        width: 16px;
-        height: 16px;
-        box-shadow: inset 0 0 0 6px var(--color)
+        background: transparent;
+        box-shadow: inset 0 0 0 5px var(--color);
     }
 
     /* animation */
