@@ -33,9 +33,10 @@
     div {
         position: fixed;
         right: 0;
-        width: 16px;
-        height: 16px;
+        width: 24px;
+        height: 20px;
         display: flex;
+        justify-content: flex-end;
         align-items: center;
         cursor: pointer;
         background: transparent;
@@ -47,7 +48,12 @@
         display: block;
         height: 3px;
         border-radius: 3px;
-        width: 100%;
+        width: 16px;
         background: var(--color);
+        transition: width .15s ease-in-out;
+    }
+
+    div:hover::before {
+        width: 100%;
     }
 </style>

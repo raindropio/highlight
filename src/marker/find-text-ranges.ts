@@ -1,7 +1,8 @@
 const blacklistedTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEXTAREA', 'OPTION']
 
 export default function(texts: string[]) {
-    const find = texts.map(text => text.trim().toLocaleLowerCase())
+    const locale = document.documentElement.lang || undefined
+    const find = texts.map(text => text.trim().toLocaleLowerCase(locale))
     const state: { start: [Node, number]|null, end: [Node, number]|null, shift: number }[] = find.map(()=>({ start: null, end: null, shift: 0 }))
     const ranges: Range[][] = find.map(() => [])
 
@@ -26,7 +27,7 @@ export default function(texts: string[]) {
 
         //iterate over text node chars
         for (let i = 0; i < node.nodeValue.length; i++) {
-            const char = node.nodeValue[i].toLocaleLowerCase().trim()
+            const char = node.nodeValue[i].toLocaleLowerCase(locale).trim()
 
             //skip spaces
             if (!char) continue
