@@ -88,7 +88,7 @@
             const t = Math.max(sp.y, 40) + window.scrollY + sp.height + 4
             const b = window.innerHeight - Math.max(sp.y, 40) - window.scrollY + 4
             const leftSide = l < (window.innerWidth/2 + window.scrollX)
-            const upSide = t < (window.innerHeight/2 + window.scrollY)
+            const upSide = true// t < (window.innerHeight/2 + window.scrollY)
 
             dialogRef?.style.setProperty('left', leftSide ? `${l}px` : 'unset')
             dialogRef?.style.setProperty('right', leftSide ? 'unset' : `${r}px`)
@@ -116,7 +116,7 @@
     onclose={onDialogClose}>
     <form method="dialog">
         {#each colors as [value, col](value)}
-            <button type="submit" {value}>
+            <button type="submit" aria-label={value} {value}>
                 <span
                     class="color"
                     class:active={value == highlight?.color} 
@@ -125,7 +125,7 @@
             </button>
         {/each}
 
-        <button type="submit" value="note" title="Add note">
+        <button type="submit" value="note" title="Add note" aria-label="Add note">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
                 <g>
                     <path fill={highlight?.note ? "currentColor" : "none"} stroke-width={highlight?.note ? "0" : undefined} stroke-linecap="round" stroke-linejoin="round" d="M9,1.75C4.996,1.75,1.75,4.996,1.75,9c0,1.319,.358,2.552,.973,3.617,.43,.806-.053,2.712-.973,3.633,1.25,.068,2.897-.497,3.633-.973,.489,.282,1.264,.656,2.279,.848,.433,.082,.881,.125,1.338,.125,4.004,0,7.25-3.246,7.25-7.25S13.004,1.75,9,1.75Z"></path>
@@ -137,7 +137,7 @@
         </button>
 
         {#if highlight?._id}
-            <button type="submit" value="remove" title="Delete highlight">
+            <button type="submit" value="remove" title="Delete highlight" aria-label="Delete highlight">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
                     <g><line x1="2.75" y1="4.25" x2="15.25" y2="4.25" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><path d="M6.75,4.25v-1.5c0-.552,.448-1,1-1h2.5c.552,0,1,.448,1,1v1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M13.5,6.75l-.4,7.605c-.056,1.062-.934,1.895-1.997,1.895H6.898c-1.064,0-1.941-.833-1.997-1.895l-.4-7.605" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g>
                 </svg>
@@ -201,7 +201,7 @@
             background: light-dark(var(--bg-light), var(--bg-dark));
             color: light-dark(var(--control-fg-light), var(--control-fg-dark));
         }
-    }    
+    }
 
     dialog.mobile.new {
         position: fixed;

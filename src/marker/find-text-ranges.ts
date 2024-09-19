@@ -61,7 +61,7 @@ export default function(texts: string[]) {
                 
                     if (
                         !range.collapsed && 
-                        range.commonAncestorContainer.parentElement?.checkVisibility()
+                        (range.commonAncestorContainer.parentElement?.checkVisibility ? range.commonAncestorContainer.parentElement?.checkVisibility() : true)
                     )
                         ranges[j].push(range)
                     else

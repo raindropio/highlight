@@ -8,9 +8,9 @@
     "test:electron": "cd test/electron && npm start"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^3.1.1",
-    "svelte": "^5.0.0-next.201",
-    "vite": "^5.3.5"
+    "@sveltejs/vite-plugin-svelte": "^4.0.0-next.7",
+    "svelte": "^5.0.0-next.253",
+    "vite": "^5.4.6"
   },
   "peerDependencies": {
     "typescript": "^5.4.5"
