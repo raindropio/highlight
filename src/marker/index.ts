@@ -1,5 +1,6 @@
 import * as modern from './modern'
 import * as legacy from './legacy'
+import findTextRanges from './find-text-ranges'
 import type { RaindropHighlight } from '@/types'
 
 //Rendering
@@ -65,4 +66,18 @@ export function rangeToText(range?: Range) {
     div = undefined
 
     return text
+}
+
+export function rangeIndex(range?: Range) {
+    if (!range) return
+    const text = rangeToText(range)
+    if (!text) return
+
+    const [ranges] = findTextRanges([text])
+    const index = ranges.findIndex(r=>{
+        const ss = r.compareBoundaryPoints(Range.START_TO_START, range)
+        const ee = r.compareBoundaryPoints(Range.END_TO_END, range)
+        return ((ss==0 && ee==0) || (range?.collapsed && ss >= 0 && ee <= 0))
+    })
+    return index == -1 ? undefined : index
 }

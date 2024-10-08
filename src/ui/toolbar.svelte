@@ -288,11 +288,7 @@
             display .25s allow-discrete ease-in-out, 
             overlay .25s allow-discrete ease-in-out, 
             box-shadow .25s allow-discrete ease-in-out, 
-            opacity .25s ease-in-out,
-            left .15s ease-in-out,
-            top .15s ease-in-out,
-            right .15s ease-in-out,
-            bottom .15s ease-in-out;
+            opacity .25s ease-in-out;
         opacity: 0;
     }
 

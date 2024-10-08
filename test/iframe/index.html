@@ -30,7 +30,8 @@
                 "note": "",
                 "color": "red",
                 "text": "Map",
-                "_id": "6214905ad0d91c0031e361b6"
+                "_id": "6214905ad0d91c0031e361b6",
+                "index": 3
             },
             {
                 "note": "sdfsdsdf",
@@ -75,6 +76,7 @@
                 break
 
                 case 'RDH_UPDATE':
+                    console.log(payload)
                     let i = highlights.findIndex(({ _id }) => _id == payload._id)
                     if (i != -1){
                         for(const [key,val] of Object.entries(payload))

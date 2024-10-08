@@ -1,5 +1,5 @@
 import type { RaindropHighlight } from '@/types'
-import { aim, rangeToText } from '@/marker'
+import { aim, rangeToText, rangeIndex } from '@/marker'
 
 export type Store = {
     highlights: RaindropHighlight[],
@@ -36,7 +36,10 @@ export function createStore(
         //new
         const text = rangeToText(range).trim()
         if (!text) return
-        return { text: rangeToText(range).trim() }
+        return {
+            text,
+            index: rangeIndex(range)
+        }
     }
 
     function upsert(highlight: RaindropHighlight) {
@@ -44,6 +47,7 @@ export function createStore(
             ...(typeof highlight._id == 'string' ? { _id: highlight._id } : {}),
             ...(typeof highlight.text == 'string' ? { text: highlight.text } : {}),
             ...(typeof highlight.note == 'string' ? { note: highlight.note } : {}),
+            ...(typeof highlight.index == 'number' ? { index: highlight.index } : {}),
             color: highlight.color || 'yellow',
             //ignore all unknown fields (otherwise breaks ios)
         }
@@ -55,6 +59,7 @@ export function createStore(
         )
 
         if (index != -1){
+            item._id = highlights[index]._id
             highlights[index] = item
             onUpdate(item)
         } else {

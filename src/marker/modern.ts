@@ -26,15 +26,17 @@ export function apply(highlights: RaindropHighlight[]) {
 
         //create css custom highlights
         for(const i in highlights) {
-            if (!textsRanges[i].length) continue
+            const ranges = textsRanges[i]
+            if (!ranges.length) continue
 
-            const { _id, color, note } = highlights[i]
+            const { _id, color, note, index=0 } = highlights[i]
             const cssId = `${cssprefix}${_id}`
+            const range = ranges?.[index] || ranges[0]
 
             //@ts-ignore
-            CSS.highlights.set(cssId, new Highlight(...textsRanges[i]))
+            CSS.highlights.set(cssId, new Highlight(range))
 
-            const pos = textsRanges[i][0].getBoundingClientRect()
+            const pos = range.getBoundingClientRect()
 
             cssRules.push(`
                 ::highlight(${cssId}) {
@@ -56,7 +58,7 @@ export function apply(highlights: RaindropHighlight[]) {
             `)
 
             //free up memory
-            for(const range of textsRanges[i])
+            for(const range of ranges)
                 range.detach()
         }
     }
