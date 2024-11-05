@@ -1,1 +1,1 @@
-text color also match
+[] Textarea support, for example to save code in sourcecode viewer in Github
