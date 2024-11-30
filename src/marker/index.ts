@@ -58,6 +58,9 @@ export function rangeToText(range?: Range) {
 
     var div: HTMLDivElement|undefined = document.createElement('div')
     div.appendChild( range.cloneContents().cloneNode(true) )
+    //svg specific
+    div.querySelectorAll('tspan').forEach(e=>e.outerHTML=`<span>${e.innerHTML}</span>`)
+    div.querySelectorAll('text').forEach(e=>e.outerHTML=`<div>${e.innerHTML}</div>`)
     document.body.appendChild(div)
     
     const text = div.innerText

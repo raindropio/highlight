@@ -154,7 +154,7 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    dialog {
+    :host {
         --control-size: 16px;
         --padding-s: 6px;
         --padding-m: 8px;

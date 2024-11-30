@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,maximum-scale=1,user-scalable=0"/>
+    <style>
+        /* html {
+            color-scheme: light dark;
+        } */
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+        }
+        iframe {
+            flex: 1;
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color-scheme: auto;
+        }
+    </style>
+
+    <script>
+        let iframe
+        let highlights = [
+            {
+                "note": "",
+                "color": "red",
+                "text": "This is a simple PDF file",
+                "_id": "6214905ad0d91c0031e361b6",
+                "index": 0
+            }
+        ]
+
+        window.addEventListener('message', ({data, source}) => {
+            if (typeof data != 'object' || !data.type) return
+            const { type, payload } = data
+            switch(type) {
+                case 'RDH_READY':
+                    iframe = source
+                    iframe.postMessage({
+                        type: 'RDH_CONFIG',
+                        payload: {
+                            enabled: true,
+                            nav: true,
+                            pro: true
+                        }
+                    }, '*')
+                    iframe.postMessage({
+                        type: 'RDH_APPLY',
+                        payload: highlights
+                    }, '*')
+                break
+
+                case 'RDH_UPDATE':
+                    console.log(payload)
+                    let i = highlights.findIndex(({ _id }) => _id == payload._id)
+                    if (i != -1){
+                        for(const [key,val] of Object.entries(payload))
+                            highlights[i][key] = val
+                    }
+
+                    iframe.postMessage({
+                        type: 'RDH_APPLY',
+                        payload: highlights
+                    }, '*')
+
+                    console.log(highlights)
+                break
+
+                case 'RDH_REMOVE':
+                    highlights = highlights.filter(({ _id }) => _id != payload._id)
+                    iframe.postMessage({
+                        type: 'RDH_APPLY',
+                        payload: highlights
+                    }, '*')
+
+                    console.log(highlights)
+                break
+
+                case 'RDH_ADD':
+                    highlights.push({
+                        ...payload,
+                        _id: String(new Date().getTime())
+                    })
+                    iframe.postMessage({
+                        type: 'RDH_APPLY',
+                        payload: highlights
+                    }, '*')
+
+                    console.log(highlights)
+                break
+            }
+        })
+
+        function scrollToLast() {
+            iframe.postMessage({
+                type: 'RDH_SCROLL',
+                payload: {
+                    _id: highlights[highlights.length-1]._id
+                }
+            }, '*')
+        }
+
+        function addSelected() {
+            iframe.postMessage({
+                type: 'RDH_ADD_SELECTION'
+            }, '*')
+        }
+
+        function noteSelected() {
+            iframe.postMessage({
+                type: 'RDH_NOTE_SELECTION'
+            }, '*')
+        }
+
+        function disable() {
+            iframe.postMessage({
+                type: 'RDH_CONFIG',
+                payload: {
+                    enabled: false
+                }
+            }, '*')
+        }
+
+        function enable() {
+            iframe.postMessage({
+                type: 'RDH_CONFIG',
+                payload: {
+                    enabled: true
+                }
+            }, '*')
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <button onclick="scrollToLast()">
+            Scroll to last
+        </button>
+
+        <button onclick="addSelected()">
+            Add selected
+        </button>
+
+        <button onclick="noteSelected()">
+            Note selected
+        </button>
+
+        <button onclick="disable()">
+            Disable
+        </button>
+
+        <button onclick="enable()">
+            Enable
+        </button>
+    </div>
+    <iframe id="iframe" src="embed.html"></iframe>
+    <!-- <iframe id="iframe" src="http://127.0.0.1:8787/web/aHR0cHM6Ly93d3cudGFuaWFyYXNjaWEuY29tL3JlYWN0LWNvbnRleHQtYXBpLWhvb2tz#"></iframe> -->
+</body>

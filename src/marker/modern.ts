@@ -52,6 +52,12 @@ export function apply(highlights: RaindropHighlight[]) {
                     color: CanvasText !important;
                 }
 
+                /* pdf.js svg render */
+                svg ::highlight(${cssId}) {
+                    background-color: color-mix(in srgb, ${colors.get(color!) || color || 'yellow'}, transparent 60%) !important;
+                    color: transparent;
+                }
+
                 :root {
                     --highlight-${_id}-top: ${(100/document.documentElement.scrollHeight * (window.scrollY + pos.top - 10)).toFixed(2)}%;
                 }
