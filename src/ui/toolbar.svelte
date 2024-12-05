@@ -155,7 +155,7 @@
     }
 
     dialog {
-        transform-origin: 0 0;
+        transform-origin: top right;
         transform: scale(var(--mobile-zoom-level, 1));
 
         --control-size: 16px;

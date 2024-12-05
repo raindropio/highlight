@@ -52,10 +52,10 @@ export function apply(highlights: RaindropHighlight[]) {
                     color: CanvasText !important;
                 }
 
-                /* pdf.js svg render */
-                svg ::highlight(${cssId}) {
+                /* pdf render */
+                .pdf ::highlight(${cssId}) {
                     background-color: color-mix(in srgb, ${colors.get(color!) || color || 'yellow'}, transparent 60%) !important;
-                    color: transparent;
+                    color: transparent !important;
                 }
 
                 :root {
