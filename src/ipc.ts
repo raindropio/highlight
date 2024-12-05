@@ -96,7 +96,7 @@ export default async function(receive: (event: AnyEventReceived)=>void) {
             res()
         }
     
-        if (document.readyState == 'loading') {
+        if (!document.body) {
             window.removeEventListener('DOMContentLoaded', OnDOMContentLoaded)
             window.addEventListener('DOMContentLoaded', OnDOMContentLoaded, { once: true })
         } else

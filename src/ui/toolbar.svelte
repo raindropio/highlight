@@ -155,7 +155,7 @@
     }
 
     dialog {
-        transform-origin: top right;
+        transform-origin: 0 0;
         transform: scale(var(--mobile-zoom-level, 1));
 
         --control-size: 16px;
@@ -170,6 +170,13 @@
         --hover-bg-dark: rgba(255,255,255,.1);
         --active-bg-light: rgba(0,0,0,.13);
         --active-bg-dark: rgba(255,255,255,.2);
+    }
+
+    /* Safari iOS fix position bug */
+    @supports (background-color: -apple-system-control-background) {
+        dialog {
+            transform-origin: top right;
+        }
     }
 
     @supports (background-color: -apple-system-control-background) {
