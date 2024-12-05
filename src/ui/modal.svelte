@@ -120,6 +120,8 @@
     }
 
     dialog {
+        transform: scale(var(--mobile-zoom-level, 1));
+
         --bg-light: rgb(245, 245, 245);
         --bg-dark: rgb(35, 35, 35);
         --fg-light: black;
@@ -321,19 +323,16 @@
             display .2s allow-discrete ease-in-out, 
             overlay .2s allow-discrete ease-in-out, 
             opacity .2s ease-in-out,
-            transform .2s ease-in-out,
             box-shadow .2s ease-in-out;
         opacity: 0;
     }
 
     dialog {
-        transform: translateY(1em);
     }
 
     [open],
     [open]::backdrop {
         opacity: 1;
-        transform: translateY(0);
     }
 
     @starting-style {
@@ -343,7 +342,6 @@
         }
 
         [open] {
-            transform: translateY(-1em);
         }
     }
 

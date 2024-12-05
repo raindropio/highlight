@@ -154,7 +154,10 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    :host {
+    dialog {
+        transform-origin: 0 0;
+        transform: scale(var(--mobile-zoom-level, 1));
+
         --control-size: 16px;
         --padding-s: 6px;
         --padding-m: 8px;
@@ -203,7 +206,7 @@
         }
     }
 
-    dialog.mobile.new {
+    /* dialog.mobile.new {
         position: fixed;
         top: auto !important;
         left: auto !important;
@@ -211,7 +214,7 @@
         bottom: 16px !important;
         margin-right: env(safe-area-inset-right);
         margin-bottom: env(safe-area-inset-bottom);
-    }
+    } */
 
     [open] {
         box-shadow: 0 0 0 .5px rgba(0,0,0,.2), 0 5px 10px rgba(0,0,0,.05), 0 15px 40px rgba(0,0,0,.1);

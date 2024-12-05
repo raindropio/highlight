@@ -6,6 +6,7 @@
     import Toolbar from './toolbar.svelte'
     import Modal from './modal.svelte'
     import Navigation from './navigation.svelte'
+    import MobileZoomLevel from './mobile-zoom-level.svelte'
 
     let { store } : { store: Store } = $props()
 
@@ -27,6 +28,8 @@
 
 <svelte:window onload={onWindowLoad} onpopstate={onWindowLoad} />
 
-<Toolbar {store} />
-<Modal {store} />
-<Navigation {store} />
+<MobileZoomLevel>
+    <Toolbar {store} />
+    <Modal {store} />
+    <Navigation {store} />
+</MobileZoomLevel>
