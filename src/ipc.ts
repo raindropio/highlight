@@ -128,6 +128,7 @@ type ConfigEventReceived = {
         enabled?: boolean
         pro?: boolean
         nav?: boolean
+        hide_new_toolbar?: boolean
     }
 }
 

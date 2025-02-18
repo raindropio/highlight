@@ -3,6 +3,7 @@ import { aim, rangeToText, rangeIndex } from '@/marker'
 
 export type Store = {
     highlights: RaindropHighlight[],
+    hide_new_toolbar: boolean,
     pro: boolean,
     nav: boolean,
     readonly draft: RaindropHighlight|undefined,
@@ -23,6 +24,7 @@ export function createStore(
 ): Store {
     //state
     let highlights: RaindropHighlight[] = $state([])
+    let hide_new_toolbar = $state(false)
     let pro = $state(false)
     let nav = $state(false)
     let draft: RaindropHighlight|undefined = $state(undefined)
@@ -95,6 +97,8 @@ export function createStore(
         set pro(value: boolean) { pro = value },
         get nav() { return nav },
         set nav(value: boolean) { nav = value },
+        get hide_new_toolbar() { return hide_new_toolbar },
+        set hide_new_toolbar(value: boolean) { hide_new_toolbar = value },
         get draft() { return draft },
 
         find,

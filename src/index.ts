@@ -22,6 +22,9 @@ const ui = document.createElement('rdh-ui') as HTMLElement & { store: Store }
                 if (typeof event.payload.nav == 'boolean')
                     store.nav = event.payload.nav
 
+                if (typeof event.payload.hide_new_toolbar == 'boolean')
+                    store.hide_new_toolbar = event.payload.hide_new_toolbar
+
                 //insert or remove ui
                 if (typeof event.payload.enabled == 'boolean') {
                     if (event.payload.enabled === true) {
@@ -39,17 +42,24 @@ const ui = document.createElement('rdh-ui') as HTMLElement & { store: Store }
                     scrollToId(event.payload._id)
             break
 
-            case 'RDH_ADD_SELECTION':
+            case 'RDH_ADD_SELECTION':{
                 const range = getCurrentRange()
                 if (!range) return
                 const highligh = store.find(range)
                 if (!highligh) return
-                store.upsert(highligh)
+                store.upsert({ ...highligh, ...(event.payload||{}) })
                 resetCurrentRange()
+            }
             break
 
-            case 'RDH_NOTE_SELECTION':
-                console.log('not implemented yet')
+            case 'RDH_NOTE_SELECTION':{
+                const range = getCurrentRange()
+                if (!range) return
+                const highligh = store.find(range)
+                if (!highligh) return
+                store.setDraft(highligh)
+                resetCurrentRange()
+            }
             break
         }
     })

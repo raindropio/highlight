@@ -67,8 +67,13 @@
             const range = getCurrentRange()
             const temp = range && store.find(range)
 
-            //clicked nowhere
-            if (!range || !temp?._id && !range.toString().trim()) {
+            if (
+                //clicked nowhere
+                !range || 
+                (!temp?._id && !range.toString().trim()) ||
+                //toolbar for new is disabled
+                (!temp?._id && store.hide_new_toolbar)
+            ) {
                 dialogRef?.close()
                 return
             }
