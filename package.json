@@ -9,11 +9,11 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^4.0.4",
-    "svelte": "^5.20.1",
+    "svelte": "^5.22.2",
     "vite": "^5.4.14"
   },
   "peerDependencies": {
-    "typescript": "^5.4.5"
+    "typescript": "^5.8.2"
   },
   "dependencies": {
     "@webcomponents/custom-elements": "^1.6.0"

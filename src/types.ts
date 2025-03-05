@@ -3,5 +3,5 @@ export type RaindropHighlight = {
     text?: string
     note?: string
     color?: string
-    index?: number
+    position?: number
 }

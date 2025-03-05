@@ -1,5 +1,5 @@
 export default function throttle<T extends (...args: any) => any>(callee: T, timeout: number) {
-    let timer: number|null = null
+    let timer: any = null
     let firstTime = true
 
     return function perform(...args: any) {

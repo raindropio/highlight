@@ -71,16 +71,16 @@ export function rangeToText(range?: Range) {
     return text
 }
 
-export function rangeIndex(range?: Range) {
+export function rangePosition(range?: Range) {
     if (!range) return
     const text = rangeToText(range)
     if (!text) return
 
     const [ranges] = findTextRanges([text])
-    const index = ranges.findIndex(r=>{
+    const position = ranges.findIndex(r=>{
         const ss = r.compareBoundaryPoints(Range.START_TO_START, range)
         const ee = r.compareBoundaryPoints(Range.END_TO_END, range)
         return ((ss==0 && ee==0) || (range?.collapsed && ss >= 0 && ee <= 0))
     })
-    return index == -1 ? undefined : index
+    return position == -1 ? undefined : position
 }

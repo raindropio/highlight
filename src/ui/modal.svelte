@@ -56,7 +56,6 @@
 <dialog
     bind:this={dialogRef}
     class:mobile={isMobile()}
-    role="presentation"
     onclose={onDialogClose}
     onmousedown={onDialogMouseDown}>
     <header>{store.draft?._id ? 'Edit' : 'New'} highlight</header>

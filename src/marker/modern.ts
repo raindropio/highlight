@@ -29,9 +29,9 @@ export function apply(highlights: RaindropHighlight[]) {
             const ranges = textsRanges[i]
             if (!ranges.length) continue
 
-            const { _id, color, note, index=0 } = highlights[i]
+            const { _id, color, note, position=0 } = highlights[i]
             const cssId = `${cssprefix}${_id}`
-            const range = ranges?.[index] || ranges[0]
+            const range = ranges?.[position] || ranges[0]
 
             //@ts-ignore
             CSS.highlights.set(cssId, new Highlight(range))
