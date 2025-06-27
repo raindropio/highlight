@@ -1,1 +1,2 @@
 [] Textarea support, for example to save code in sourcecode viewer in Github
+[] support shadow dom https://www.msn.com/en-us/tv/celebrity/trump-to-pardon-chrisley-knows-best-stars-todd-and-julie-chrisley-after-2-years-in-prison/ar-AA1FB5W5#image=1

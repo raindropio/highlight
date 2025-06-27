@@ -4,7 +4,9 @@ import findTextRanges from './find-text-ranges'
 
 export const cssprefix = `rh-${new Date().getTime()}-`
 
-export const isSupported = 'highlights' in CSS
+export const isSupported =
+    'highlights' in CSS
+    && !('InternalError' in window && 'browser' in window) // disable for Firefox web extension, buggy
 
 export function apply(highlights: RaindropHighlight[]) {
     //@ts-ignore
@@ -15,7 +17,6 @@ export function apply(highlights: RaindropHighlight[]) {
     const cssRules = []
 
     //clear all css custom highlights
-    //@ts-ignore
     CSS.highlights.clear()
 
     if (highlights.length) {
@@ -33,7 +34,6 @@ export function apply(highlights: RaindropHighlight[]) {
             const cssId = `${cssprefix}${_id}`
             const range = ranges?.[position] || ranges[0]
 
-            //@ts-ignore
             CSS.highlights.set(cssId, new Highlight(range))
 
             const pos = range.getBoundingClientRect()
@@ -88,31 +88,40 @@ export function cleanup() {
 }
 
 export function scrollToId(highlightId: string) {
-    //@ts-ignore
-    for(const [hid, highlight] of CSS.highlights){
+    let found = false
+
+    CSS.highlights.forEach((highlight, hid) => {
+        if (found) return
+
         const id = hid.replace(cssprefix, '')
-        if (highlightId != id) continue
+        if (highlightId != id) return
+        
         for(const range of highlight) {
             (range as Range).startContainer.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            found = true
             break
         }
-    }
+    })
 }
 
 export function aim(range: Range): RaindropHighlight['_id']|undefined {
-    let overlapped
+    let overlapped: string|undefined
 
-    //@ts-ignore
-    for(const [hid, highlight] of CSS.highlights)
+    CSS.highlights.forEach((highlight, hid) => {
+        if (overlapped) return
+
         for(const highlightRange of highlight) {
-            const ss = range.compareBoundaryPoints(Range.START_TO_START, highlightRange)
-            const ee = range.compareBoundaryPoints(Range.END_TO_END, highlightRange)
+            if (overlapped) return
+
+            const ss = range.compareBoundaryPoints(Range.START_TO_START, highlightRange as Range)
+            const ee = range.compareBoundaryPoints(Range.END_TO_END, highlightRange as Range)
             if ((ss==0 && ee==0) || (range?.collapsed && ss >= 0 && ee <= 0))
-                overlapped = [hid.replace(cssprefix, ''), highlightRange]
+                overlapped = hid.replace(cssprefix, '')
         }
+    })
 
     if (overlapped)
-        return overlapped[0].replace(cssprefix, '')
+        return overlapped.replace(cssprefix, '')
 
     return
 }
