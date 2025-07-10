@@ -9,8 +9,8 @@
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.1.0",
-    "svelte": "^5.34.8",
-    "vite": "^7.0.0"
+    "svelte": "^5.35.5",
+    "vite": "^7.0.4"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"

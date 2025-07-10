@@ -1,23 +1,22 @@
 import type { RaindropHighlight } from '@/types'
 import { colors } from '@/config'
 import findTextRanges from './find-text-ranges'
+import SafeCSSHighlights from '@/modules/safe-css-highlights'
 
 export const cssprefix = `rh-${new Date().getTime()}-`
 
-export const isSupported =
-    'highlights' in CSS
-    && !('InternalError' in window && 'browser' in window) // disable for Firefox web extension, buggy
+export const isSupported = 'highlights' in CSS
 
 export function apply(highlights: RaindropHighlight[]) {
     //@ts-ignore
-    if (!highlights.length && !CSS.highlights.size)
+    if (!highlights.length && !SafeCSSHighlights.size)
         return
 
     //global style
     const cssRules = []
 
     //clear all css custom highlights
-    CSS.highlights.clear()
+    SafeCSSHighlights.clear()
 
     if (highlights.length) {
         //find text ranges
@@ -34,7 +33,7 @@ export function apply(highlights: RaindropHighlight[]) {
             const cssId = `${cssprefix}${_id}`
             const range = ranges?.[position] || ranges[0]
 
-            CSS.highlights.set(cssId, new Highlight(range))
+            SafeCSSHighlights.set(cssId, range)
 
             const pos = range.getBoundingClientRect()
 
@@ -90,7 +89,7 @@ export function cleanup() {
 export function scrollToId(highlightId: string) {
     let found = false
 
-    CSS.highlights.forEach((highlight, hid) => {
+    SafeCSSHighlights.forEach((highlight, hid) => {
         if (found) return
 
         const id = hid.replace(cssprefix, '')
@@ -107,7 +106,7 @@ export function scrollToId(highlightId: string) {
 export function aim(range: Range): RaindropHighlight['_id']|undefined {
     let overlapped: string|undefined
 
-    CSS.highlights.forEach((highlight, hid) => {
+    SafeCSSHighlights.forEach((highlight, hid) => {
         if (overlapped) return
 
         for(const highlightRange of highlight) {
