@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { Store } from '@/store.svelte'
     import { colors } from '@/config'
-    import isMobile from '@/modules/is-mobile'
+    import * as userAgent from '@/modules/user-agent'
 
     //properties
     let { store } : { store: Store } = $props()
@@ -38,7 +38,7 @@
     }
 
     function onNoteKeyDown(e: KeyboardEvent & { currentTarget: HTMLTextAreaElement }) {
-        if (!isMobile()) {
+        if (!userAgent.mobile) {
             e.stopImmediatePropagation()
             e.stopPropagation()
 
@@ -55,7 +55,7 @@
 
 <dialog
     bind:this={dialogRef}
-    class:mobile={isMobile()}
+    class:mobile={userAgent.mobile}
     onclose={onDialogClose}
     onmousedown={onDialogMouseDown}>
     <header>{store.draft?._id ? 'Edit' : 'New'} highlight</header>

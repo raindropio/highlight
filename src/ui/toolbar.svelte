@@ -4,7 +4,7 @@
     import type { RaindropHighlight } from '@/types'
     import throttle from '@/modules/throttle'
     import { getCurrentRange, resetCurrentRange } from '@/marker'
-    import isMobile from '@/modules/is-mobile'
+    import * as userAgent from '@/modules/user-agent'
 
     //properties
     let { store } : { store: Store } = $props()
@@ -88,17 +88,20 @@
             const gap = 10
 
             const sp = range.getBoundingClientRect()
-            const l = Math.min(Math.max(sp.x, gap) + window.scrollX, window.innerWidth + window.scrollX - popupW - gap)
-            const r = Math.min(window.innerWidth - Math.max(sp.x, gap) - window.scrollX - sp.width, window.innerWidth - window.scrollX - popupW - gap)
-            const t = Math.max(sp.y, 40) + window.scrollY + sp.height + 4
-            const b = window.innerHeight - Math.max(sp.y, 40) - window.scrollY + 4
-            const leftSide = l < (window.innerWidth/2 + window.scrollX)
-            const upSide = (t - window.scrollY) < (window.innerHeight/2)
+            const vv = window.visualViewport || { width: window.innerWidth, height: window.innerHeight, pageLeft: window.scrollX, pageTop: window.scrollY }
+
+            const l = Math.min(Math.max(sp.x, gap) + vv.pageLeft, vv.width + vv.pageLeft - popupW - gap)
+            const r = Math.min(vv.width - Math.max(sp.x, gap) - vv.pageLeft - sp.width, vv.width - vv.pageLeft - popupW - gap)
+            const t = sp.y + vv.pageTop + sp.height + 4
+            const b = t - sp.height - dialogRef.offsetHeight
+            const leftSide = l < (vv.width/2 + vv.pageLeft)
+
+            //ios 26 needs a fix
+            const upSide = userAgent.ios && CSS.supports?.('position-area: bottom') ? (t - vv.pageTop) > (vv.height/2) : true
 
             dialogRef?.style.setProperty('left', leftSide ? `${l}px` : 'unset')
             dialogRef?.style.setProperty('right', leftSide ? 'unset' : `${r}px`)
-            dialogRef?.style.setProperty('top', upSide ? `${t}px` : 'unset')
-            dialogRef?.style.setProperty('bottom', upSide ? 'unset' : `${b}px`)
+            dialogRef?.style.setProperty('top', upSide ? `${t}px` : `${b}px`)
         })
     }
 
@@ -117,7 +120,7 @@
 <dialog
     bind:this={dialogRef}
     class:new={!highlight?._id}
-    class:mobile={isMobile()}
+    class:mobile={userAgent.mobile}
     onclose={onDialogClose}>
     <form method="dialog">
         {#each colors as [value, col](value)}
