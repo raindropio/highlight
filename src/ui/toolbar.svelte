@@ -93,7 +93,7 @@
             const t = Math.max(sp.y, 40) + window.scrollY + sp.height + 4
             const b = window.innerHeight - Math.max(sp.y, 40) - window.scrollY + 4
             const leftSide = l < (window.innerWidth/2 + window.scrollX)
-            const upSide = true// t < (window.innerHeight/2 + window.scrollY)
+            const upSide = (t - window.scrollY) < (window.innerHeight/2)
 
             dialogRef?.style.setProperty('left', leftSide ? `${l}px` : 'unset')
             dialogRef?.style.setProperty('right', leftSide ? 'unset' : `${r}px`)
