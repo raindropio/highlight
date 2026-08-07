@@ -11,6 +11,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "electron": "30.x"
+    "electron": "39.x"
   }
 }
