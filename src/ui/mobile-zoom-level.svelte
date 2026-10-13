@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang='ts'>
     let { children } = $props()
     let zoomLevel = $state(1)
 

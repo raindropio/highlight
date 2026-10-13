@@ -1,29 +1,39 @@
-<script lang="ts">
-    import type { Store } from '@/store.svelte'
-    import { colors } from '@/config'
-    import { scrollToId } from '@/marker'
+<script lang='ts'>
+    import type { Marker } from './marker.svelte'
+    import { colors } from '../config'
 
-    //properties
-    let { store } : { store: Store } = $props()
+    let { marker } : { marker: Marker } = $props()
+
+    let resized = $state(0)
+    const items = $derived.by(()=>{
+        //re-run on resize
+        resized
+        const height = document.documentElement.scrollHeight
+        return [...marker.found].map(([highlight, range])=>({
+            highlight,
+            top: (100 / height * (window.scrollY + range.getBoundingClientRect().top - 10)).toFixed(2),
+            color: colors.get(highlight.color!) || highlight.color || colors.get('yellow')
+        }))
+    })
 
     const onClick = (e: MouseEvent)=>{
-        const id = (e.target as HTMLElement).getAttribute('data-highlight')
-        if (!id) return
+        const index = (e.target as HTMLElement).getAttribute('data-index')
+        if (index == null) return
         e.preventDefault()
-        scrollToId(id)
+        marker.scrollTo(items[+index].highlight)
     }
 </script>
 
-{#if store.nav}
+<svelte:window onresize={()=>resized++} />
+
 <nav role="presentation" onclick={onClick}>
-    {#each store.highlights as highlight(highlight._id ?? highlight)}
+    {#each items as { highlight, top, color }, index (highlight)}
         <div
-            data-highlight={highlight._id}
-            style="top: var(--highlight-{highlight._id}-top); --color: {colors.get(highlight.color!) || highlight.color}"
+            data-index={index}
+            style="top: {top}%; --color: {color}"
             ></div>
     {/each}
 </nav>
-{/if}
 
 <style>
     nav {

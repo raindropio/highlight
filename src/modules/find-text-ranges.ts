@@ -10,16 +10,16 @@ export const textNodeFilter = (node: Node) =>
         NodeFilter.FILTER_ACCEPT
 
 /*
-    Find each text in the visible document, ignoring case and all whitespace.
+    Find each text within root, ignoring case and all whitespace.
 
     One TreeWalker pass condenses the page text into a single lowercased string
     with whitespace removed, plus an index of word "runs" (condensed position ->
     text node + original offset). Searching is then just native String.indexOf,
     and range boundaries are resolved with a binary search over the runs.
 */
-export default function(texts: string[]) {
-    //document lang can be malformed (e.g. lang="en_US") — toLocaleLowerCase throws RangeError on invalid tags
-    let locale: string | undefined = document.documentElement.lang || undefined
+export default function(root: Element, texts: string[]) {
+    //nearest lang; it can be malformed (e.g. lang="en_US") — toLocaleLowerCase throws RangeError on invalid tags
+    let locale: string | undefined = root.closest('[lang]')?.getAttribute('lang') || undefined
     try { if (locale) Intl.getCanonicalLocales(locale) } catch { locale = undefined }
 
     //whole-string lowercasing keeps context-sensitive mappings (greek final sigma) consistent on both sides
@@ -42,7 +42,7 @@ export default function(texts: string[]) {
         length += text.length
     }
 
-    const treeWalker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, textNodeFilter)
+    const treeWalker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, textNodeFilter)
 
     const words = /\S+/g
     let node: Node | null

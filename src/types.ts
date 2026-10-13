@@ -1,4 +1,4 @@
-export type RaindropHighlight = {
+export type CustomHighlight = {
     _id?: string
     text?: string
     note?: string

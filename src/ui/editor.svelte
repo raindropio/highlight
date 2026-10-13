@@ -1,10 +1,15 @@
-<script lang="ts">
-    import type { Store } from '@/store.svelte'
-    import { colors } from '@/config'
-    import * as userAgent from '@/modules/user-agent'
+<script lang='ts'>
+    import type { CustomHighlight } from '../types'
+    import { colors } from '../config'
+    import * as userAgent from '../modules/user-agent'
 
     //properties
-    let { store } : { store: Store } = $props()
+    let { draft = $bindable(), pro = false, onsubmit, oncancel } : {
+        draft?: CustomHighlight
+        pro?: boolean
+        onsubmit: ()=>void
+        oncancel: ()=>void
+    } = $props()
 
     //state
     let dialogRef: HTMLDialogElement
@@ -12,7 +17,7 @@
     let compact = $state(true)
 
     $effect(() => {
-        if (store.draft) {
+        if (draft) {
             compact = true
             dialogRef?.showModal()
         }
@@ -25,7 +30,7 @@
         const value = e.currentTarget.returnValue
         e.currentTarget.returnValue = ''
 
-        setTimeout(value ? store.draftSubmit : store.draftCancel, 200)
+        setTimeout(value ? onsubmit : oncancel, 200)
     }
 
     function onDialogMouseDown(e: MouseEvent & { currentTarget: HTMLDialogElement }) {
@@ -55,18 +60,18 @@
 
 <dialog
     bind:this={dialogRef}
-    class:mobile={userAgent.mobile}
+    class={{ mobile: userAgent.mobile }}
     onclose={onDialogClose}
     onmousedown={onDialogMouseDown}>
-    <header>{store.draft?._id ? 'Edit' : 'New'} highlight</header>
+    <header>{draft?._id ? 'Edit' : 'New'} highlight</header>
 
     <form method="dialog">
-        {#if store.draft}
+        {#if draft}
             <blockquote 
                 role="presentation"
-                class:compact={compact}
+                class={{ compact }}
                 onclick={()=>compact = false}>
-                {store.draft?.text?.trim() || ''}
+                {draft?.text?.trim() || ''}
             </blockquote>
 
             <fieldset class="color">
@@ -74,7 +79,7 @@
                     <input 
                         type="radio" 
                         name="color" 
-                        bind:group={store.draft!.color}
+                        bind:group={draft!.color}
                         {value}
                         style="--color: {col}" />
                 {/each}
@@ -86,11 +91,11 @@
                 rows="4"
                 maxlength="5000"
                 placeholder="Notes (optional)"
-                disabled={!store.pro}
-                bind:value={store.draft!.note}
+                disabled={!pro}
+                bind:value={draft!.note}
                 onkeydown={onNoteKeyDown}></textarea>
 
-            {#if !store.pro}
+            {#if !pro}
                 <div class="unlock">
                     <a href="https://raindrop.io/pro/buy" target="_blank">Upgrade to Pro</a> to unlock annotation
                 </div>
@@ -106,7 +111,7 @@
                 bind:this={submitButtonRef} 
                 type="submit" 
                 value="OK">
-                {store.draft?._id ? 'Update' : 'Create'} <sup>&crarr;</sup>
+                {draft?._id ? 'Update' : 'Create'} <sup>&crarr;</sup>
             </button>
         </footer>
     </form>

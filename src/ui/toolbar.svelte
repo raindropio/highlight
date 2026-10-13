@@ -1,156 +1,108 @@
-<script lang="ts">
-    import type { Store } from '@/store.svelte'
-    import { colors } from '@/config'
-    import type { RaindropHighlight } from '@/types'
-    import throttle from '@/modules/throttle'
-    import { getCurrentRange, resetCurrentRange } from '@/marker'
-    import * as userAgent from '@/modules/user-agent'
+<script lang='ts'>
+    import { colors } from '../config'
+    import type { Selection, SelectionStore } from './selection.svelte'
+    import * as userAgent from '../modules/user-agent'
 
-    //properties
-    let { store } : { store: Store } = $props()
+    let { selection, hideNewToolbar = false, oncolor, onnote, onremove } : {
+        selection: SelectionStore
+        hideNewToolbar?: boolean
+        oncolor?: (selection: Selection, color: string)=>void
+        onnote?: (selection: Selection)=>void
+        onremove?: (selection: Selection)=>void
+    } = $props()
 
-    //state
     let dialogRef: HTMLDialogElement
-    let highlight: RaindropHighlight|undefined = $state(undefined)
-    //selection the toolbar was opened for; the live selection may be gone by the time a button is clicked
-    let highlightRange: Range|undefined
-    let wait = $state(false)
+    //selection the toolbar is open for; the live one may be gone by the time a button is clicked
+    let opened = $state.raw<Selection>()
 
-    //internal
-    function onDialogClose(e: Event & { currentTarget: HTMLDialogElement }) {
-        if (!highlight) return
+    $effect(()=>{
+        const current = selection.current
 
-        const value = e.currentTarget.returnValue
-        e.currentTarget.returnValue = ''
-
-        switch (value) {
-            case 'add':
-                store.upsert(highlight, highlightRange)
-                resetCurrentRange()
-            break
-
-            case 'note':
-                store.setDraft(highlight, highlightRange)
-                resetCurrentRange()
-            break
-
-            case 'remove':
-                store.remove(highlight)
-                resetCurrentRange()
-            break
-
-            default:
-                if (colors.has(value)) {
-                    store.upsert({ ...highlight, color: value }, highlightRange)
-                    resetCurrentRange()
-                    return
-                }
-            break
-        }
-    }
-
-    //reset selection
-    function onMouseDown() {
-        wait = true
-    }
-
-    function onMouseUp() {
-        wait = false
-        setTimeout(onSelectionChange)
-    }
-
-    function onSelectionChange() {
-        if (wait) {
+        if (!current || (!current.highlight._id && hideNewToolbar)) {
             dialogRef?.close()
             return
         }
 
-        requestAnimationFrame(() => {
-            //component may be unmounted while a throttled/rAF callback is pending
-            if (!dialogRef) return
+        opened = current
 
-            const range = getCurrentRange()
-            const temp = range && store.find(range)
+        dialogRef.inert = true
+        dialogRef.show()
+        dialogRef.inert = false
 
-            if (
-                //clicked nowhere
-                !range || 
-                (!temp?._id && !range.toString().trim()) ||
-                //toolbar for new is disabled
-                (!temp?._id && store.hide_new_toolbar)
-            ) {
-                dialogRef?.close()
-                return
-            }
+        position(current.rect)
+    })
 
-            highlight = temp
-            highlightRange = range.cloneRange()
+    //page coordinates: the dialog is position: absolute at body level
+    function position(sp: DOMRect) {
+        const popupW = 256
+        const gap = 10
 
-            dialogRef.inert = true
-            dialogRef?.show()
-            dialogRef.inert = false
+        const vv = window.visualViewport || { width: window.innerWidth, height: window.innerHeight, pageLeft: window.scrollX, pageTop: window.scrollY }
 
-            const popupW = 256
-            const gap = 10
+        const l = Math.min(Math.max(sp.x, gap) + vv.pageLeft, vv.width + vv.pageLeft - popupW - gap)
+        const r = Math.min(vv.width - Math.max(sp.x, gap) - vv.pageLeft - sp.width, vv.width - vv.pageLeft - popupW - gap)
+        const t = sp.y + vv.pageTop + sp.height + 4
+        const b = t - sp.height - dialogRef.offsetHeight
+        const leftSide = l < (vv.width/2 + vv.pageLeft)
 
-            const sp = range.getBoundingClientRect()
-            const vv = window.visualViewport || { width: window.innerWidth, height: window.innerHeight, pageLeft: window.scrollX, pageTop: window.scrollY }
+        //ios 26 needs a fix
+        const upSide = userAgent.ios && CSS.supports?.('position-area: bottom') ? (t - vv.pageTop) > (vv.height/2) : true
 
-            const l = Math.min(Math.max(sp.x, gap) + vv.pageLeft, vv.width + vv.pageLeft - popupW - gap)
-            const r = Math.min(vv.width - Math.max(sp.x, gap) - vv.pageLeft - sp.width, vv.width - vv.pageLeft - popupW - gap)
-            const t = sp.y + vv.pageTop + sp.height + 4
-            const b = t - sp.height - dialogRef.offsetHeight
-            const leftSide = l < (vv.width/2 + vv.pageLeft)
-
-            //ios 26 needs a fix
-            const upSide = userAgent.ios && CSS.supports?.('position-area: bottom') ? (t - vv.pageTop) > (vv.height/2) : true
-
-            dialogRef?.style.setProperty('left', leftSide ? `${l}px` : 'unset')
-            dialogRef?.style.setProperty('right', leftSide ? 'unset' : `${r}px`)
-            dialogRef?.style.setProperty('top', upSide ? `${t}px` : `${b}px`)
-        })
+        dialogRef.style.setProperty('left', leftSide ? `${l}px` : 'unset')
+        dialogRef.style.setProperty('right', leftSide ? 'unset' : `${r}px`)
+        dialogRef.style.setProperty('top', upSide ? `${t}px` : `${b}px`)
     }
 
-    //get selected range or clicked highlight
-    const onSelectionChangeThrottled = throttle(onSelectionChange, 200)
-</script>
+    function onDialogClose(e: Event & { currentTarget: HTMLDialogElement }) {
+        const value = e.currentTarget.returnValue
+        e.currentTarget.returnValue = ''
 
-<svelte:document 
-    onmousedown={onMouseDown}
-    ontouchstart={onMouseDown}
-    onmouseup={onMouseUp}
-    ontouchend={onMouseUp}
-    ontouchcancel={onMouseUp}
-    onselectionchange={onSelectionChangeThrottled} />
+        const current = opened
+        if (!current || !value) return
+
+        switch (value) {
+            case 'note':
+                onnote?.(current)
+            break
+
+            case 'remove':
+                onremove?.(current)
+            break
+
+            default:
+                if (colors.has(value))
+                    oncolor?.(current, value)
+            break
+        }
+    }
+</script>
 
 <dialog
     bind:this={dialogRef}
-    class:new={!highlight?._id}
-    class:mobile={userAgent.mobile}
+    class={{ new: !opened?.highlight._id, mobile: userAgent.mobile }}
     onclose={onDialogClose}>
     <form method="dialog">
         {#each colors as [value, col](value)}
             <button type="submit" aria-label={value} {value}>
                 <span
-                    class="color"
-                    class:active={value == highlight?.color} 
+                    class={['color', { active: value == opened?.highlight.color }]}
                     style="--color: {col}">
                 </span>
             </button>
         {/each}
 
-        <button type="submit" value="note" title={highlight?.note || "Add note"} aria-label="Add note">
+        <button type="submit" value="note" title={opened?.highlight.note || "Add note"} aria-label="Add note">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
                 <g>
-                    <path fill={highlight?.note ? "currentColor" : "none"} stroke-width={highlight?.note ? "0" : undefined} stroke-linecap="round" stroke-linejoin="round" d="M9,1.75C4.996,1.75,1.75,4.996,1.75,9c0,1.319,.358,2.552,.973,3.617,.43,.806-.053,2.712-.973,3.633,1.25,.068,2.897-.497,3.633-.973,.489,.282,1.264,.656,2.279,.848,.433,.082,.881,.125,1.338,.125,4.004,0,7.25-3.246,7.25-7.25S13.004,1.75,9,1.75Z"></path>
-                    <path fill={highlight?.note ? "none" : "currentColor"} stroke-width="0" d="M9,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
-                    <path fill={highlight?.note ? "none" : "currentColor"} stroke-width="0" d="M5.5,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
-                    <path fill={highlight?.note ? "none" : "currentColor"} stroke-width="0" d="M12.5,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
+                    <path fill={opened?.highlight.note ? "currentColor" : "none"} stroke-width={opened?.highlight.note ? "0" : undefined} stroke-linecap="round" stroke-linejoin="round" d="M9,1.75C4.996,1.75,1.75,4.996,1.75,9c0,1.319,.358,2.552,.973,3.617,.43,.806-.053,2.712-.973,3.633,1.25,.068,2.897-.497,3.633-.973,.489,.282,1.264,.656,2.279,.848,.433,.082,.881,.125,1.338,.125,4.004,0,7.25-3.246,7.25-7.25S13.004,1.75,9,1.75Z"></path>
+                    <path fill={opened?.highlight.note ? "none" : "currentColor"} stroke-width="0" d="M9,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
+                    <path fill={opened?.highlight.note ? "none" : "currentColor"} stroke-width="0" d="M5.5,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
+                    <path fill={opened?.highlight.note ? "none" : "currentColor"} stroke-width="0" d="M12.5,10c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"></path>
                 </g>
             </svg>
         </button>
 
-        {#if highlight?._id}
+        {#if opened?.highlight._id}
             <button type="submit" value="remove" title="Delete highlight" aria-label="Delete highlight">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18">
                     <g><line x1="2.75" y1="4.25" x2="15.25" y2="4.25" fill="none" stroke-linecap="round" stroke-linejoin="round"></line><path d="M6.75,4.25v-1.5c0-.552,.448-1,1-1h2.5c.552,0,1,.448,1,1v1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path><path d="M13.5,6.75l-.4,7.605c-.056,1.062-.934,1.895-1.997,1.895H6.898c-1.064,0-1.941-.833-1.997-1.895l-.4-7.605" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></g>

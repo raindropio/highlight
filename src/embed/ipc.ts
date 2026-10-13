@@ -1,4 +1,4 @@
-import type { RaindropHighlight } from '@/types'
+import type { CustomHighlight } from '../types'
 
 function connect(receive: (event: AnyEventReceived)=>void) {
     //extension inject script
@@ -38,8 +38,10 @@ function connect(receive: (event: AnyEventReceived)=>void) {
     if (
         //@ts-ignore
         (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') ||
+        //@ts-ignore
         (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron)
     ) {
+        //@ts-ignore
         const { ipcRenderer } = require('electron')    
         const onMessage = (_: any, event: AnyEventReceived) => receive(event)
         ipcRenderer.removeListener('RDH', onMessage)
@@ -119,7 +121,7 @@ export default async function(receive: (event: AnyEventReceived)=>void) {
 //received events
 type ApplyEventReceived = {
     type: 'RDH_APPLY'
-    payload: RaindropHighlight[]
+    payload: CustomHighlight[]
 }
 
 type ConfigEventReceived = {
@@ -135,13 +137,13 @@ type ConfigEventReceived = {
 type ScrollEventReceived = {
     type: 'RDH_SCROLL'
     payload: {
-        _id: RaindropHighlight['_id']
+        _id: CustomHighlight['_id']
     }
 }
 
 type AddSelectionEventReceived = {
     type: 'RDH_ADD_SELECTION'
-    payload?: RaindropHighlight
+    payload?: CustomHighlight
 }
 
 type NoteSelectionEventReceived = {
@@ -160,18 +162,18 @@ type SendReadyEvent = {
 
 type SendAddEvent = {
     type: 'RDH_ADD'
-    payload: RaindropHighlight
+    payload: CustomHighlight
 }
 
 type SendUpdateEvent = {
     type: 'RDH_UPDATE'
-    payload: RaindropHighlight
+    payload: CustomHighlight
 }
 
 type SendRemoveEvent = {
     type: 'RDH_REMOVE'
     payload: {
-        _id: RaindropHighlight['_id']
+        _id: CustomHighlight['_id']
     }
 }
 

@@ -2,7 +2,7 @@
     Firefox > 140 support CSS.highlights, but it has a bug when it used in isolated environments (like Web Extensions)
 */
 
-const isFirefox = 'InternalError' in window
+const isFirefox = 'InternalError' in globalThis
 
 //the registry can be shared with the page (main world), so every bulk
 //operation is scoped to our own keys and never touches page-owned entries
